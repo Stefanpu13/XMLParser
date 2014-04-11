@@ -1,0 +1,40 @@
+﻿body {
+}
+
+#container{
+    width:70%;
+    height:500px;
+}
+
+
+.scale-row{
+    margin:20px;
+    width:500px;
+    display:table-row;
+}
+
+.scale-container{
+    empty-cells:show;
+    display:table;   
+}
+td, .scale-cell {
+    border: 1px solid black;
+    min-width:50px;
+    width: auto;
+    padding: 5px;
+    margin: 5px;
+    background-color: #f19033;
+    text-align: center;
+}
+
+.scale-cell {    
+    border:1px solid black;
+    display:table-cell;
+    padding:5px;
+    background-color:#f19033;
+    text-align:center;
+}
+
+.radio-cell {
+    background-color:white;
+}
