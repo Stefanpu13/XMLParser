@@ -38,4 +38,19 @@ td, .scale-cell {
 
 .radio-cell {
     background-color:white;
+<<<<<<< HEAD
+=======
+}
+
+.d {
+    width:50px;
+    height:50px;
+    background-color:red;
+}
+
+.gd {
+    width:150px;
+    height:50px;
+    background-color:green;
+>>>>>>> 1978a126ecbf0662d2f9f2aaa86644d8eff860a8
 }
