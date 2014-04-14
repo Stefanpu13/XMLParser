@@ -1,7 +1,6 @@
 ﻿// Gets XML renderer based on the type of the XML content. 
 // Different renderers present different strategies to render XML to html.
-var XMLrendererFactory = (function () {
-
+var XMLRendererFactory = (function () {
     // Constructor function.
     var XMLRenderer = function (XMLDoc, XMLRenderingFunc) {
         /// <field name='XMLDoc' type='Document'>The document to be converted to HTML.</field>
@@ -9,8 +8,10 @@ var XMLrendererFactory = (function () {
         /// <field name='convertToHTML' type='Function'>The document to be converted to HTML.</field>
         this.convertToHTML = XMLRenderingFunc;
     },
-    
-    renderers = {};
+    // Assosiative array of renderers.
+    renderers = {}, 
+    rootTag = 'eval_question',
+    XMLTypeAttributeName = 'display_type';
     
     function addXMLRenderer(XMLType, renderFunc) {
         /// <summary>Adds XML renderer based on the XML type </summary>
@@ -25,12 +26,6 @@ var XMLrendererFactory = (function () {
         if (XMLTypeToLower !== undefined) {
             // 'renderers[XMLType] === undefined' checks for inherited properties. 
             if (renderers[XMLType] === undefined || renderers.hasOwnProperty(XMLTypeToLower)) {
-                // XMLDoc is added when the renderer is requested.
-                //renderer = {
-                //    XMLDoc: undefined,                
-                //    convertToHTML: renderFunc
-                //};
-
                 renderer = new XMLRenderer(undefined, renderFunc);
                 renderers[XMLTypeToLower] = renderer;
             } else {
@@ -44,8 +39,8 @@ var XMLrendererFactory = (function () {
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
         var XMLDoc = parseXML(XMLContent),
-            questionTag = XMLDoc.getElementsByTagName('eval_question').item(0),
-            displayType = questionTag.getAttribute('display_type'),
+            questionTag = XMLDoc.getElementsByTagName(rootTag).item(0),
+            displayType = questionTag.getAttribute(XMLTypeAttributeName),
             renderer,
             // Convert to lower case.
             displayTypeToLower = displayType.toLowerCase && displayType.toLowerCase();
@@ -60,7 +55,7 @@ var XMLrendererFactory = (function () {
                 throw new Error('\'XMLType\' is not supported.')
             }
         } else {
-            throw new TypeError('\'XMLType\' is not a string.')
+            throw new TypeError('\'display_type\' attribute not found or is empty string.')
         }
     }
     
@@ -78,12 +73,12 @@ var XMLrendererFactory = (function () {
                 XMLDoc.loadXML(txt);
             }
         } catch (e) {
-            throw new SyntaxError('Can not get XML renderer. Invalid XML content');
+            throw new Error('Can not get XML renderer. Invalid XML content');
         }        
         // Chrome 33, FF 28, Opera 20, Safari 5.1.7 do not throw exception if XML is invalid.
         if (isValidXML(XMLDoc) === false) {
 
-            throw new SyntaxError('Can not get XML renderer. Invalid XML content');
+            throw new Error('Can not get XML renderer. Invalid XML content');
         }
         return XMLDoc;
     }
