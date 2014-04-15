@@ -18,22 +18,19 @@
     empty-cells:show;
     display:table;   
 }
-td, .scale-cell {
+
+.cell {
     border: 1px solid black;
     min-width:50px;
     width: auto;
     padding: 5px;
     margin: 5px;
-    background-color: #f19033;
-    text-align: center;
+     text-align: center;
 }
 
-.scale-cell {    
-    border:1px solid black;
-    display:table-cell;
-    padding:5px;
-    background-color:#f19033;
-    text-align:center;
+.scale-cell { 
+    display:table-cell; 
+    background-color:#f19033; 
 }
 
 .radio-cell {

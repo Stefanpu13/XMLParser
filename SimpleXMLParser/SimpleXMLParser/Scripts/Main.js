@@ -5,13 +5,13 @@
 $(document).ready(function () {
     var button = document.getElementById('btn');
     var fileInput = document.getElementById('fileInput');
-    var END_OF_XML = '/// End Of XML ///';    
+    var END_OF_QUESTION = '/// End Of Question ///';    
 
     initializeRenderers();
     document.onkeydown = function (event) {
-        if (event.keyCode === 13) {
-            convertXMLToHTML();
-        }
+        //if (event.keyCode === 13) {
+        //    convertXMLToHTML();
+        //}
     }
     button.onclick = convertXMLToHTML;
 
@@ -20,18 +20,21 @@ $(document).ready(function () {
     function convertXMLToHTML() {
         var xmlType = 'text';
         var container = document.getElementById('container');
-        var xmlContent = container.value;
+        var question = container.value;
         var renderer, element;
 
         // Last value in array is empty string.
         // Array represents the XMLs written to file when respective
         // web page questionary was rendered.
         // XMLs are separated by '/// End Of XML ///' string.
-        allXMLs = xmlContent.split(END_OF_XML);
+        allQuestions = question.split(END_OF_QUESTION);
 
-        for (var i = 0, currentXML; currentXML = allXMLs[i].trim() ; i++) {
-            if (currentXML) {
-                renderer = XMLRendererFactory.getXMLRenderer(currentXML);
+        for (var i = 0, currentQuestion; currentQuestion = allQuestions[i] ; i++) {
+            if (currentQuestion) {
+
+                currentQuestion = currentQuestion.trim();
+                // convert string to object.               
+                renderer = XMLRendererFactory.getXMLRenderer(currentQuestion);
                 try {
                     element = renderer.convertToHTML();
                 } catch (e) {
@@ -45,7 +48,7 @@ $(document).ready(function () {
                     addDOMElement('table-container', elem);
                 });
             } else {
-                addDOMElement('div-container', element);
+                addDOMElement('table-container', element);
             }
         }
     }
