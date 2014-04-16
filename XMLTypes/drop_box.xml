@@ -1,0 +1,26 @@
+  <eval_question question_type="active" display_type="drop_box" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+  <repeat_last_scale value="false" /> 
+  <incomplete_row value="false" /> 
+  <control_values>
+  <control_value value="" display="--select one--" /> 
+  <control_value value="7" display="Very much above average" /> 
+  <control_value value="6" display="Above average" /> 
+  <control_value value="5" display="Slightly above average" /> 
+  <control_value value="4" display="Average" /> 
+  <control_value value="3" display="Slightly below average" /> 
+  <control_value value="2" display="Below average" /> 
+  <control_value value="1" display="Very much below average" /> 
+  </control_values>
+  </eval_question>
+  
+  <eval_question question_type="active" display_type="drop_box" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+  <control_values>
+  <control_value value="" display="-- Select One --" /> 
+  <control_value value="a." display="a. access and care coordination." /> 
+  <control_value value="b." display="b. socioeconomic status and health insurance." /> 
+  <control_value value="c." display="c. privacy and use of electronic health records." /> 
+  </control_values>
+  </eval_question>
+  
+  
+  "<eval_question question_type=\"active\" display_type=\"drop_box\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><control_values><control_value value=\"\" display=\"-- Select One --\" /><control_value value=\"1\" display=\"1 - None\" /><control_value value=\"2\" display=\"2\" /><control_value value=\"3\" display=\"3 - Some\" /><control_value value=\"4\" display=\"4\" /><control_value value=\"5\" display=\"5 - A Lot\" /></control_values></eval_question>"

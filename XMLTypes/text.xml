@@ -1,0 +1,5 @@
+  <eval_question question_type="active" display_type="text" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+  <repeat_last_scale value="false" /> 
+  <length value="4000" /> 
+  </eval_question>
+  

@@ -1,0 +1,8 @@
+ 
+<eval_question question_type="passive" display_type="label" is_bold="true" label_pattern="%%ExternalRef%%- %%QText%%" bgcolor="ccffcc">
+  <repeat_last_scale value="false" /> 
+  <label_span value="+2" /> 
+  <control_values /> 
+  </eval_question>
+  
+  "<eval_question question_type=\"passive\" display_type=\"label\" is_bold=\"true\" label_pattern=\"%%ExternalRef%%- %%QText%%\" bgcolor=\"ccffcc\"><repeat_last_scale value=\"false\" /><label_span value=\"+2\" /><control_values></control_values></eval_question>"

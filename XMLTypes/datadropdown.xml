@@ -1,0 +1,4 @@
+ <eval_question question_type="active" display_type="data_dropdown" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+  <repeat_last_scale value="false" /> 
+  <dynamic_data typeName="SystemArts.VersantRN.BusinessLogicLayer.UserProfileCollection,VoyagerCodeLibrary" selectMethod="SelectPreceptorsForQuestioner" /> 
+  </eval_question>

@@ -1,0 +1,83 @@
+  <eval_question question_type="passive" display_type="scale" is_bold="false">
+  <bgcolor value="ffffff" /> 
+  <column_count value="5" /> 
+  <header_lines>
+  <line>
+  <column display="%%ExternalRef%%" value="" columns="1" /> 
+  <column display="%%QText%%" value="" columns="1" /> 
+  <column display="Strongly Agree" value="4" columns="1" /> 
+  <column display="Agree" value="3" columns="1" /> 
+  <column display="Disagree" value="2" columns="1" /> 
+  <column display="Strongly Disagree" value="1" columns="1" /> 
+  <column display="Not Applicable" value="0" columns="1" /> 
+  </line>
+  </header_lines>
+  </eval_question>
+  
+  
+  
+  <eval_question question_type="passive" display_type="scale" is_bold="false">
+  <bgcolor value="ffffff" /> 
+  <column_count value="3" /> 
+  <header_lines>
+  <line>
+  <column display="%%ExternalRef%%" value="" columns="1" /> 
+  <column display="%%QText%%" value="" columns="1" /> 
+  <column display="Satisfied" value="1" columns="1" /> 
+  <column display="Neutral" value="2" columns="1" /> 
+  <column display="Dissatisfied" value="3" columns="1" /> 
+  </line>
+  </header_lines>
+  </eval_question>
+  
+  
+  <eval_question question_type="passive" display_type="scale" is_bold="true">
+  <bgcolor value="fedcba" /> 
+  <column_count value="7" /> 
+  <header_lines>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="Strongly Disagree" columns="2" /> 
+  <column display="Neither" columns="3" /> 
+  <column display="Strongly Agree" columns="2" /> 
+  </line>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="7" columns="1" /> 
+  <column display="6" columns="1" /> 
+  <column display="5" columns="1" /> 
+  <column display="4" columns="1" /> 
+  <column display="3" columns="1" /> 
+  <column display="2" columns="1" /> 
+  <column display="1" columns="1" /> 
+  </line>
+  </header_lines>
+  </eval_question>
+  
+  
+  <eval_question question_type="passive" display_type="scale" is_bold="true">
+  <bgcolor value="fedcba" /> 
+  <column_count value="4" /> 
+  <header_lines>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="very unlikely" columns="1" /> 
+  <column display="" columns="1" /> 
+  <column display="" columns="1" /> 
+  <column display="very likely" columns="1" /> 
+  </line>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="1" columns="1" /> 
+  <column display="2" columns="1" /> 
+  <column display="3" columns="1" /> 
+  <column display="4" columns="1" /> 
+  </line>
+  </header_lines>
+  </eval_question>
+  
+  
+  
+  "<eval_question question_type=\"passive\" display_type=\"label\" is_bold=\"true\" label_pattern=\"%%ExternalRef%%- %%QText%%\" bgcolor=\"ccffcc\"><repeat_last_scale value=\"false\" /><label_span value=\"+2\" /><control_values></control_values></eval_question>"
+  
+  

@@ -1,0 +1,42 @@
+<eval_question question_type="active" display_type="radio_group" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+<control_values>
+  <control_value value="4" display="" /> 
+  <control_value value="3" display="" /> 
+  <control_value value="2" display="" /> 
+  <control_value value="1" display="" /> 
+  <control_value value="0" display="" /> 
+  </control_values>
+  </eval_question>
+  
+  
+  
+  <eval_question question_type="active" display_type="radio_group" is_bold="false" label_pattern="%%ExternalRef%%|%%QText%%">
+    <header_lines>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="Strongly Disagree" columns="2" /> 
+  <column display="Neither" columns="3" /> 
+  <column display="Strongly Agree" columns="2" /> 
+  </line>
+  <line>
+  <column display="" columns="2" /> 
+  <column display="7" columns="1" /> 
+  <column display="6" columns="1" /> 
+  <column display="5" columns="1" /> 
+  <column display="4" columns="1" /> 
+  <column display="3" columns="1" /> 
+  <column display="2" columns="1" /> 
+  <column display="1" columns="1" /> 
+  </line>
+  </header_lines>
+ <control_values>
+ <control_value value="7" display="" /> 
+  <control_value value="6" display="" /> 
+  <control_value value="5" display="" /> 
+  <control_value value="4" display="" /> 
+  <control_value value="3" display="" /> 
+  <control_value value="2" display="" /> 
+  <control_value value="1" display="" /> 
+  </control_values>
+  </eval_question>
+ 
