@@ -47,7 +47,7 @@ var XMLRendererFactory = (function () {
         /// <summary>Gets XML renderer based on the type of the XML content </summary>
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
-        var questionObject = JSON.parse(questionString).Data;
+        var questionObject = JSON.parse(questionString);
 
         var XMLDoc = parseXML(questionObject),
             questionTag = XMLDoc.getElementsByTagName(rootTag).item(0),
@@ -65,12 +65,12 @@ var XMLRendererFactory = (function () {
                 throw new Error('\'XMLType\' is not supported.')
             }
         } else {
-            throw new TypeError('\'display_type\' attribute not found or is empty string.')
+            throw new Error('\'display_type\' attribute not found or is empty string.')
         }
     }
     
     function parseXML(question) {
-        var XMLDoc = undefined, XMLContent = question.DisplayDefinition;
+        var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition;
         // IE throws error if XML is invalid.
         try {
             if (window.DOMParser) {
@@ -94,12 +94,11 @@ var XMLRendererFactory = (function () {
         }
 
         // Adds two more tags for for '%%ExternalRef%%' and '%%QText%%' or replaces existing values.
-        function addLabelTags(XMLDoc, question) {
-            var root = XMLDoc.getElementsByTagName(rootTag)[0],
+        function addLabelTags(XMLDoc, questionObject) {
+            var root = XMLDoc.getElementsByTagName(rootTag)[0], extRefValue,
                 label = root.getAttribute(labelPatternAttribute), attrName, labels,
-                attrValue, tag, tagValue, oldNode, currentLabel, columns,
-                labelsValues = ['%%ExternalRef%%','%%QText%%'];
-            
+                attrValue, tag, tagValue, oldNode, currentLabel, columns, question = questionObject.Data;
+                //labelsValues = ['%%ExternalRef%%','%%QText%%'];            
 
             if (label) {
                 labels = label.split('|');
@@ -107,27 +106,16 @@ var XMLRendererFactory = (function () {
                 // create new tags with the names of the label values - 'ExternalRef' and 'QText'
                 // add new tags ad begining of root tag - will be used as rows
                 if (labels.length == 2) {
-                    for (var i = 0; i < labels.length; i++) {
-                        // get attr name - this is tag name
-                        //attrName = labels[i].slice(2, -2); 
-                        appendTagToXML(labels[i]);
+                    for (var i = 0; i < labels.length; i++) {                                              
+                        appendTagToXML(labels[i], 2, -2);
                     }
                 } else { // %%ExternalRef%%- %%QText%%
-                    currentLabel = labels[0].replace('%%ExternalRef%%- ', '');
-                    appendTagToXML(currentLabel);
-                }
-
-                function appendTagToXML(currentLabel) {
-                    attrName = currentLabel.slice(2, -2); // Remove '%' from label.
-                    // get value from object
-                    attrValue = question[attrName];
-                    // add new tag to XMLDoc. Use unified tag name for later use in 'createRow' and 'createCell' methods.
-                    tag = XMLDoc.createElement('column');
-                    tag.setAttribute('display', attrValue);
-
-                    tagValue = XMLDoc.createTextNode(attrValue);
-                    tag.appendChild(tagValue);
-                    root.appendChild(tag);
+                    //extRefValue = (question.ExternalRef) || '';
+                    //if (extRefValue !=='') {
+                    //    extRefValue+='- '
+                    //}
+                    //currentLabel = labels[0].replace('%%ExternalRef%%- ', extRefValue);
+                    appendTagToXML(labels[0], 2, -2);
                 }
 
                 oldNode = XMLDoc.getElementsByTagName(rootTag)[0];
@@ -139,12 +127,28 @@ var XMLRendererFactory = (function () {
                     for (var i = 0; i < 2; i++) {
                         
                         if (columns[i].getAttribute('display') === '%%ExternalRef%%') {
-                            columns[i].setAttribute('display', question['%%ExternalRef%%'] || '');
+                            //columns[i].setAttribute('display', question['%%ExternalRef%%'] || '');
+                            columns[i].setAttribute('ExternalRef', question['ExternalRef'] || '');
                         } else if (columns[i].getAttribute('display') === '%%QText%%') {
-                            columns[i].setAttribute('display', question['%%QText%%'] || '');
+                            //columns[i].setAttribute('display', question['%%QText%%'] || '');
+                            columns[i].setAttribute('QText', question['QText'] || '');
                         }
                     }
                 }
+            }
+
+            function appendTagToXML(currentLabel, startIndex, endIndex) {
+                attrName = currentLabel.slice(startIndex, endIndex); // Remove '%' from label.
+                // get value from object
+                attrValue = question[attrName];
+                // add new tag to XMLDoc. Use unified tag name for later use in 'createRow' and 'createCell' methods.
+                tag = XMLDoc.createElement('column');
+                tag.setAttribute(attrName, attrValue);
+                tag.setAttribute('display', currentLabel);
+
+                tagValue = XMLDoc.createTextNode(attrValue);
+                tag.appendChild(tagValue);
+                root.appendChild(tag);
             }
         }
 

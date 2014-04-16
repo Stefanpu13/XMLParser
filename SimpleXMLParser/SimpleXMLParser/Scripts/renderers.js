@@ -6,8 +6,8 @@ function initializeRenderers() {
         DISPLAY_TYPE_TEXT = "text", DISPLAY_TYPE_RADIO = "radio_group",
         DISPLAY_VERTICAL_GROUP = "vertical_group", DISPLAY_TYPE_DROPDOWN = "drop_box",
         DISPLAY_TYPE_DATE = "date", DISPLAY_TYPE_DATADROPDOWN = "data_dropdown",
-        DISPLAY_TYPE_CASCADEDROPDOWN = "cascade_dropdown", EXTERNAL_REF = '%%ExternalRef%%',
-        Q_TEXT = '%%QText%%',
+        DISPLAY_TYPE_CASCADEDROPDOWN = "cascade_dropdown", EXTERNAL_REF = 'ExternalRef',
+        Q_TEXT = 'QText',
         // Custom attribute to be added to the different answer options.
         // #region custom attributes
         VALUE_ATTRIBUTE = "data-answer-value",
@@ -29,7 +29,7 @@ function initializeRenderers() {
     function radioGroupRenderer(XMLDoc) {
         var doc = this.XMLDoc || XMLDoc, rows = [], controlValues, controlValue,
         row, cellContent, lines, controlValuesCount, i = 0, radioCellClass = 'radio-cell',
-        labelPattrernClass = 'label-cell', columns;
+        labelPattrernClass = 'label-cell', columns, questionID = this.question.ID;
 
         lines = doc.getElementsByTagName('line');
         if (lines.length) {
@@ -39,9 +39,29 @@ function initializeRenderers() {
         }
         
         controlValues = doc.getElementsByTagName('control_value');
+        //cellContent = {
+        //    elementType: 'input', wrappingElement: 'label',
+        //    attributes: [{ name: 'type', value: 'radio' }, {name: 'name', value: 'radio-' + questionID}]
+        //};
+
         cellContent = {
-            elementType: 'input', wrappingElement: 'label',
-            attributes: [{ name: 'type', value: 'radio' }]
+            elements: [{
+                type: 'label',
+                attributes: [{
+                    name: 'class',
+                    value: 'vertical-radio-label'
+                }],
+                innerElements: [{
+                    type: 'input',
+                    attributes: [{
+                        name: 'type',
+                        value: 'radio'
+                    }, {
+                        name: 'name',
+                        value: 'vertical-radio-' + questionID
+                    }]
+                }]
+            }]
         };
         row = createRow(controlValues, cellContent, radioCellClass);
         //Insert cells for %%ExternalRef%% and %%QText%%      
@@ -109,15 +129,47 @@ function initializeRenderers() {
     }
 
     function verticalGroupRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc;
-        throw new Error("Renderer not implemented.");
+        var doc = this.XMLDoc || XMLDoc, row, cell,
+        // #region form elements;
+       radio, controlValues, i = 0, controlValuesCount;
+        // #endregion
+
+        // create row
+                
+        // get control values
+        controlValues = doc.getElementsByTagName('control_value');
+        cellContent = {
+            elementType: 'input', wrappingElement: 'label',
+            attributes: [{ name: 'type', value: 'radio' }, { name: 'name', value: 'radio-' + questionID }]
+        };
+        row = createRow(controlValues, cellContent, radioCellClass);
+
+        //controlValuesCount = controlValues.length;
+        //for (; i < controlValuesCount; i++) {
+        //    label = document.createElement('label');
+        //    radio = document.createElement('input');
+        //    radio.setAttribute('type', 'radio');
+        //    radio.setAttribute('name', 'radio' + this.question.ID);
+        //}
+        
+        // for each cnotrol value: 
+        //   1. create label,
+        //   2. create input .
+        //   3. set input 'value' and 'display'.
+        //   4. Add input to label.
+        //   5. add label to form.
+        // create dynamic row for ExtRef and QText.
+        // add dynamic row to td.
+        // add form to td.
+        // add td to tr.
+        // 
     }
 
     function dateRenderer(XMLDoc) {
         var doc = this.XMLDoc || XMLDoc, question = this.question, day,
             responseDateString = question.Response && question.Response.RValue, row,
             calendar = new Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
-            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year', deletedDaysCount = 0;
+            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year';
             // #region calendar HTML elements.
             form = document.createElement('form'),
             daySelect = document.createElement('select'),
@@ -159,12 +211,7 @@ function initializeRenderers() {
         form.appendChild(dayLabel);
         form.appendChild(yearLabel);
         //#endregion
-
-        // #region add select elements options to 'Calendar' object.
-        calendar.dayElements = daySelect.children;
-        calendar.monthElements = monthSelect.children;
-        calendar.yearElements = yearSelect.children;
-        // #endregion
+      
         // #endregion
 
         // #region set 'calendar' properties
@@ -174,11 +221,15 @@ function initializeRenderers() {
         // #endregion
 
         // #region onchange events
+        // 'e' can be event object or number representing a day.
         daySelect.onchange = function (e) {
-            // 'e' can be event object or the value of the month.
-            calendar.day = e && e.target && e.target.value || e;
+            var selectedDay = Number( e && e.target && e.target.value || e);
+            calendar.day = selectedDay;
+            // update 'selectedIndex' property.
+            daySelect.selectedIndex = selectedDay - 1;
         }
 
+        // 'e' can be event object or number representing an year.
         monthSelect.onchange = function (e) {
             var selectedMonth;
             var currentMonth ;
@@ -187,97 +238,64 @@ function initializeRenderers() {
             var daysInSelectedMonth;
             var daysInCurrentMonth;
 
-            if (e.target) {
-                selectedMonth = e.target.value;
+            if (e.target !== undefined) {
+                selectedMonth = Number(e.target.value);
                 currentMonth = calendar.month;
-                currentDay = daySelect.value;
-                currentYear = yearSelect.value;
+                currentDay = Number(daySelect.value);
+                currentYear = Number( yearSelect.value);
                 daysInSelectedMonth = calendar.getDaysInMonth(selectedMonth);
                 daysInCurrentMonth = calendar.getDaysInMonth(currentMonth);
 
                 resolveDaysOptionsCount();
                 resolveSelectedDay();
                 calendar.month = selectedMonth;
-            } else {
-                // 'Date.getMonth()' returns 0-based index;
+            } else {               
                 monthSelect.selectedIndex = e;
                 calendar.month = e + 1;
             }
             
-            // check if selected month days are less than current month days
-            // Hides or shows elements based on selected month.
+            // Check if selected month days are less or more than current month days.
+            // Hides or shows days options based on selected month.
             function resolveDaysOptionsCount() {
-                if (daysInSelectedMonth < daysInCurrentMonth) {
-                    calendar.applyDaysMapper(function () {
-                        hide(this);
-                    }, daysInSelectedMonth);
+                if (daysInSelectedMonth < daysInCurrentMonth) {                    
+                    hide(daysInSelectedMonth, daysInCurrentMonth);
 
                 } else if (daysInSelectedMonth > daysInCurrentMonth) {
-                    // The selected month might be with 30 or 31 days.
-                    if (isSafari()) {
-                        show();
-                  
-                    } else {
-                        calendar.applyDaysMapper(function () {
-                            $(this).show();
-                        }, daysInCurrentMonth, daysInSelectedMonth);
-                    }
+                    show(daysInCurrentMonth, daysInSelectedMonth);
                 }
             }
 
             // If the last day of current month is chosen and new month
-            // is has less days, the new month last day is selected.
+            //  has less days, the new month last day is selected.
             function resolveSelectedDay() {
                 if (daysInSelectedMonth < currentDay) {
-                    // update 'selectedIndex' property
-                    daySelect.selectedIndex = daysInSelectedMonth - 1;
-                    daySelect.onchange(daysInSelectedMonth);
-                    calendar.applyDaysMapper(function () {
-                        // here 'this' refers to the 'daysInMonth' elements.
-                        hide(this);
-                    }, daysInSelectedMonth);
+                    daySelect.onchange(daysInSelectedMonth);  
                 }
-            };
-            
+            };            
         };
 
+        // 'e' can be event object or number representing a month.
         yearSelect.onchange = function (e) {
-            var selectedYear;
-            var currentYear;
-            var currentMonth;
-            var currentDay;
-            var february;
-            var leapYearFebDays;
-            var daysInFebruary;
+            var selectedYear, currentYear, currentMonth, currentDay,
+            february, leapYearFebDays, februaryDays;
 
-            if (e.target) {
-                selectedYear = e.target.value;
+            if (e.target !== undefined) {
+                selectedYear =Number( e.target.value);
                 currentYear = calendar.year;
                 currentMonth = calendar.month;
-                currentDay = daySelect.value;
+                currentDay = Number( daySelect.value);
                 february = 2;
                 leapYearFebDays = 29;
-                daysInFebruary = 28;
+                februaryDays = 28;
 
-                //var daysInCurrentMonth = calendar.getDaysInMonth(currentMonth);
-
-                // if selected year is not leap && current was leap && month =2 && day = 29
-                if (calendar.isLeap(currentYear) && !calendar.isLeap(selectedYear) &&
-                    currentMonth == february && currentDay == 29) {
-                    daySelect.selectedIndex = daysInFebruary - 1;
-                    daySelect.onchange(daysInFebruary);
-                    calendar.applyDaysMapper(function () {
-                        hide(this);
-                    }, currentDay - 1);
-                } else if (!calendar.isLeap(currentYear) && calendar.isLeap(selectedYear)) {
-                    // restore 29 days in Feb
-                    if (isSafari()) {
-                        show();
-                    } else {
-                        calendar.applyDaysMapper(function () {
-                            $(this).show();
-                        }, daysInFebruary, leapYearFebDays);
-                    }
+                // change from leap to non-leap. hide the 29th day.
+                if (calendar.isLeap(currentYear) && calendar.isLeap(selectedYear) === false &&
+                    currentMonth === february) {                   
+                    daySelect.onchange(februaryDays);                  
+                    hide(februaryDays, leapYearFebDays);
+                } else if (calendar.isLeap(currentYear) === false && calendar.isLeap(selectedYear)
+                    && currentMonth === february) { // change from non-leap to leap. show the 29th day.
+                    show(februaryDays, leapYearFebDays);
                 }
 
                 calendar.year = selectedYear;
@@ -288,8 +306,8 @@ function initializeRenderers() {
 
             function setYearSelectIndex(year) {
                 // '+' for fast parsing to Number.
-                var lastYear = +yearSelect.lastChild.innerText;
-                var firstYear = +yearSelect.firstChild.innerText;
+                var lastYear = Number(yearSelect.lastChild.innerText);
+                var firstYear = Number(yearSelect.firstChild.innerText);
                 if (year > lastYear) {
                     year = lastYear;
                 }
@@ -331,34 +349,23 @@ function initializeRenderers() {
                 selectContainer.appendChild(option);
             }
         };
-
-        function hide(elem) {
-            if (isSafari()) {
-                daySelect.removeChild(elem);
-                deletedDaysCount++;
-
-            } else {
-                $(elem).hide();
-            }
+        
+        function hide(startDayIndex, endDayIndex) {
+            for (var i = startDayIndex; i < endDayIndex; i++) {
+                daySelect.removeChild(daySelect.lastChild);
+            }            
         };
 
-        function show() {
+        function show(daysInCurrentMonth, daysInSelectedMonth) {
+            var daysCount = daysInSelectedMonth - daysInCurrentMonth, i, option;
 
-            for (var i = 1; i <= deletedDaysCount; i++) {
-                var option = document.createElement('option');
+            for (i = 1; i <= daysCount; i++) {
+                option = document.createElement('option');
                 option.innerText = daysInCurrentMonth + i;
                 daySelect.appendChild(option);
             }
-
-            deletedDaysCount = 0;
-
         }
-
-        function isSafari() {
-            var isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
-            return isSafari;
-        }
-
+    
         return row;
     }
 
@@ -402,107 +409,149 @@ function initializeRenderers() {
         return row;
     }
 
+    // #region original 'createCell'
+    //function createCell(column, cellContent) {
+    //    /// <summary>Creates 'td' element and adds content to it. </summary>
+    //    /// <param name='column' type='Element'>Element containing info about the cell. </param>
+    //    /// <param name='cellContent' type='Object'>Object representing the HTMLElement content of the cell. </param>   
+    //    /// <returns type="Element">A td element.</returns>
+    //    var possibleColumnNames = ['column', 'control_value'];
+    //    var cell = document.createElement('td'), element, wrappingElement, valueAttr = column.getAttribute('value'),
+    //        dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
+
+    //    cell.innerText = column.getAttribute('display');
+
+    //    if (valueAttr) {
+    //        cell.setAttribute(VALUE_ATTRIBUTE, valueAttr);
+    //    }
+    //    // If is dynamic column
+    //    if (dynamicAttribute) {
+    //        cell.innerText = dynamicAttribute;
+    //    }
+
+    //    cell.setAttribute('colspan', column.getAttribute('columns') || 1);
+
+    //    if (possibleColumnNames.indexOf( column.localName) === -1) {
+    //        cell.appendChild(column);
+    //    } else {
+    //        if (cellContent !== undefined) {
+    //            element = document.createElement(cellContent.elementType);
+    //            cellContent.attributes.forEach(function (attr) {
+    //                element.setAttribute(attr.name, attr.value);
+    //            });
+
+    //            if (cellContent.wrappingElement !== undefined) {
+    //                wrappingElement = document.createElement(cellContent.wrappingElement);
+    //                wrappingElement.appendChild(element);
+    //                cell.appendChild(wrappingElement);
+    //            } else {
+    //                cell.appendChild(element);
+    //            }
+    //        }
+    //    }
+       
+    //    return cell;
+    //}
+    // #endregion
+
     function createCell(column, cellContent) {
         /// <summary>Creates 'td' element and adds content to it. </summary>
         /// <param name='column' type='Element'>Element containing info about the cell. </param>
         /// <param name='cellContent' type='Object'>Object representing the HTMLElement content of the cell. </param>   
         /// <returns type="Element">A td element.</returns>
         var possibleColumnNames = ['column', 'control_value'];
-        var cell = document.createElement('td'), element, wrappingElement, valueAttr = column.getAttribute('value');
+        var cell = document.createElement('td'), element, wrappingElement, valueAttr = column.getAttribute('value'),
+            dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
 
-        cell.innerText = column.getAttribute('display');
 
         if (valueAttr) {
             cell.setAttribute(VALUE_ATTRIBUTE, valueAttr);
         }
+        // If is dynamic column
+        if (dynamicAttribute) {
+            cell.innerText = dynamicAttribute;
+        } else {
+            cell.innerText = column.getAttribute('display');
+        }
+
         cell.setAttribute('colspan', column.getAttribute('columns') || 1);
 
-        if (possibleColumnNames.indexOf( column.localName) === -1) {
+        if (possibleColumnNames.indexOf(column.localName) === -1) {
             cell.appendChild(column);
         } else {
             if (cellContent !== undefined) {
-                element = document.createElement(cellContent.elementType);
-                cellContent.attributes.forEach(function (attr) {
+                parseCellContent(cell, cellContent);
+            }
+        }
+
+        // Creates the elements based on 'cellElement' object and inserts them in cell
+        function parseCellContent(cell, cellContent) {
+            var elements = cellContent.elements;
+            elements.forEach(function (elem) {
+               
+                var domElement = createElement(elem);
+
+                if (elem.innerElements !== undefined && elem.innerElements.length > 0) {
+                    elem.innerElements.forEach(function (innerElem) {
+                        var innerElement = createElement(innerElem);
+                        domElement.appendChild(innerElement);
+                    });
+                }
+
+                cell.appendChild(domElement);
+            });
+
+            function createElement(elem) {
+                var element = document.createElement(elem.type);
+                elem.attributes.forEach(function (attr) {
                     element.setAttribute(attr.name, attr.value);
                 });
 
-                if (cellContent.wrappingElement !== undefined) {
-                    wrappingElement = document.createElement(cellContent.wrappingElement);
-                    wrappingElement.appendChild(element);
-                    cell.appendChild(wrappingElement);
-                } else {
-                    cell.appendChild(element);
-                }
+                return element;
             }
         }
-       
+
         return cell;
     }
 
-    function insertDynamicColumns(doc, row) {
+    function insertDynamicColumns(doc, row) {        
         var columns = Array.prototype.slice.call(doc.getElementsByTagName('column'), 0);
+
         var firstChild = row.firstChild;
         columns.forEach(function (col) {
-            var cell = createCell(col);
-            cell.setAttribute('class', 'cell');
-            row.insertBefore(cell, firstChild);
+            var cell, value;
+            // If 'column' tag contains dynamic data: Example:   '<column display="%%ExternalRef%%"/>'
+            if (col.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
+                col.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
+
+            }
+
+            if (col.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
+                col.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
+                cell = createCell(col);
+                cell.setAttribute('class', 'cell');
+                cell.innerText = col.getAttribute(Q_TEXT) || col.getAttribute(EXTERNAL_REF);
+                row.insertBefore(cell, firstChild);
+            }
         });
     }
     // #endregion
 
     // #region rendering objects     
     var Calendar = (function () {
-        // Declare and populate 'daysInMonth' only once.
-        var daysInMonth = [];
-        (function populateDaysInMonth() {
-            daysInMonth[0] = 31; // Jan
-            daysInMonth[1] = 28; // Feb
-            for (var i = 2; i <= 6; i++) {
-                if (i % 2 == 0) {
-                    daysInMonth[i] = 31;
-                } else {
-                    daysInMonth[i] = 30;
-                }
-            }
-            for (i = 7; i < 12; i++) {
-                if (i % 2 == 0) {
-                    daysInMonth[i] = 30;
-                } else {
-                    daysInMonth[i] = 31;
-                }
-            }
-        })();
 
         var Calendar = function () {
             this.day,
             this.month,
-            this.year,
-            this.dayElements = [], // HTML 'option' elements for days.
-            this.monthElements = [], // HTML 'option' elements for months.
-            this.yearElements = []; // HTML 'option' elements for years.
+            this.year;           
         };
 
         Calendar.prototype.isLeap = function (year) {
             return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
         }
 
-        Calendar.prototype.getDaysInMonth = function (month) {
-            var monthIndex = month - 1;
-            if (this.isLeap(this.year) && month == 2) {
-                // For Feb in a leap year return 29;
-                return daysInMonth[monthIndex] + 1;
-            }
-
-            return daysInMonth[monthIndex];
-        }
-
-        Calendar.prototype.applyDaysMapper = function (callback, startIndex, endIndex) {
-            var days= Array.prototype.slice.call(this.dayElements, startIndex, endIndex);            
-            days.map(function (elem) {
-                // use the elem as 'this' in the callback
-                callback.apply(elem);
-            });
-
+        Calendar.prototype.getDaysInMonth = function (month) {          
+            return new Date(this.year, month, 0).getDate();
         }
 
         return Calendar;
