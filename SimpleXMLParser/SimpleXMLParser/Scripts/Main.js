@@ -33,11 +33,12 @@ $(document).ready(function () {
             if (currentQuestion) {
 
                 currentQuestion = currentQuestion.trim();
-                // convert string to object.               
+                // convert string to object.                        
                 renderer = XMLRendererFactory.getXMLRenderer(currentQuestion);
                 try {
                     element = renderer.convertToHTML();
                 } catch (e) {
+                    console.log(e.message);
                     element = '';
                 }
             }            

@@ -17,19 +17,48 @@ function initializeRenderers() {
 
     //#region renderers    
     function textRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc;
-        throw new Error("Renderer not implemented.");
+        var doc = this.XMLDoc || XMLDoc, row, dynamicTagName = 'column', textArea,
+            textareaClass = 'teaxarea-cell',lengthTag, textAreaMaxLength,
+            initialTextareaColsCount = 50, initialTextareaRowsCount = 5; // As is in original method. Don`t know why is this value chosen.
+
+        textArea = document.createElement('textarea');
+
+        lengthTag = doc.getElementsByTagName('length')[0];
+        textAreaMaxLength = lengthTag.getAttribute('value');
+        textArea.setAttribute('maxlength', textAreaMaxLength);
+
+        // Taken from original "RenderText" method.
+        if (textAreaMaxLength > initialTextareaColsCount) {
+            textArea.setAttribute('rows', initialTextareaRowsCount);
+        }
+        textArea.setAttribute('cols', initialTextareaColsCount);
+        
+        row = createRow(textArea, undefined, textareaClass);
+        insertDynamicContent(doc, row, dynamicTagName);
+
+        return row;
     }
 
     function labelRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc;
-        throw new Error("Renderer not implemented.");
+        var doc = this.XMLDoc || XMLDoc, row, labelSpanTag = 'label_span', colSpan,
+            spanElement, cellClass = 'label-cell';
+        
+        // get 'label_span'
+        labelSpanTag = doc.getElementsByTagName(labelSpanTag)[0];
+        colSpan = labelSpanTag.getAttribute('value');
+        spanElement = document.createElement('span');
+
+        row = document.createElement('tr');
+        insertDynamicContent(doc, row, 'row', 'label');
+
+        return row;
+
     }   
         
     function radioGroupRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc, rows = [], controlValues, controlValue,
-        row, cellContent, lines, controlValuesCount, i = 0, radioCellClass = 'radio-cell',
-        labelPattrernClass = 'label-cell', columns, questionID = this.question.ID;
+        var doc = this.XMLDoc || XMLDoc, rows = [], controlValues,
+        row, cellContent, lines, i = 0, radioCellClass = 'radio-cell',
+        labelPatternClass = 'label-cell', columns, questionID = this.question.ID, dynamicTagName = 'column';
 
         lines = doc.getElementsByTagName('line');
         if (lines.length) {
@@ -38,19 +67,47 @@ function initializeRenderers() {
             rows.push.apply(rows, scales);
         }
         
-        controlValues = doc.getElementsByTagName('control_value');
-        //cellContent = {
-        //    elementType: 'input', wrappingElement: 'label',
-        //    attributes: [{ name: 'type', value: 'radio' }, {name: 'name', value: 'radio-' + questionID}]
-        //};
+        controlValues = doc.getElementsByTagName('control_value');       
 
         cellContent = {
             elements: [{
                 type: 'label',
                 attributes: [{
                     name: 'class',
-                    value: 'vertical-radio-label'
+                    value: 'radio-label'
                 }],
+                innerElements: [{
+                    type: 'input',
+                    attributes: [{
+                        name: 'type',
+                        value: 'radio'
+                    }, {
+                        name: 'name',
+                        value: 'radio-' + questionID
+                    }]
+                }]
+            }]
+        };
+        row = createRow(controlValues, cellContent, radioCellClass);
+        //Insert cells for %%ExternalRef%% and %%QText%%      
+        insertDynamicContent(doc, row, dynamicTagName);
+        rows.push(row);
+
+        return rows;
+    }
+
+    function verticalGroupRenderer(XMLDoc) {
+        var doc = this.XMLDoc || XMLDoc, rows = [], controlValues, controlValue,
+        row, cellContent, lines, controlValuesCount, i = 0, radioCellClass = 'vertical-radio-cell',
+        columns, questionID = this.question.ID, dynamicTagName = 'row';
+       
+        // get control values
+        controlValues = doc.getElementsByTagName('control_value');
+
+        // A 'label' tag with <input type=radio>
+        cellContent = {
+            elements: [{
+                type: 'label',
                 innerElements: [{
                     type: 'input',
                     attributes: [{
@@ -64,12 +121,11 @@ function initializeRenderers() {
             }]
         };
         row = createRow(controlValues, cellContent, radioCellClass);
-        //Insert cells for %%ExternalRef%% and %%QText%%      
-        insertDynamicColumns(doc, row);
-        rows.push(row);
+        insertDynamicContent(doc, row, dynamicTagName, 'vertical-radio-label cell');
+        rows.push(row);       
 
         return rows;
-    }   
+    }
 
     function dropDownRenderer(XMLDoc) {
         // 'this' - refers to the rendering object created in 
@@ -126,48 +182,11 @@ function initializeRenderers() {
         }
 
         return rows
-    }
-
-    function verticalGroupRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc, row, cell,
-        // #region form elements;
-       radio, controlValues, i = 0, controlValuesCount;
-        // #endregion
-
-        // create row
-                
-        // get control values
-        controlValues = doc.getElementsByTagName('control_value');
-        cellContent = {
-            elementType: 'input', wrappingElement: 'label',
-            attributes: [{ name: 'type', value: 'radio' }, { name: 'name', value: 'radio-' + questionID }]
-        };
-        row = createRow(controlValues, cellContent, radioCellClass);
-
-        //controlValuesCount = controlValues.length;
-        //for (; i < controlValuesCount; i++) {
-        //    label = document.createElement('label');
-        //    radio = document.createElement('input');
-        //    radio.setAttribute('type', 'radio');
-        //    radio.setAttribute('name', 'radio' + this.question.ID);
-        //}
-        
-        // for each cnotrol value: 
-        //   1. create label,
-        //   2. create input .
-        //   3. set input 'value' and 'display'.
-        //   4. Add input to label.
-        //   5. add label to form.
-        // create dynamic row for ExtRef and QText.
-        // add dynamic row to td.
-        // add form to td.
-        // add td to tr.
-        // 
-    }
+    }    
 
     function dateRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc, question = this.question, day,
-            responseDateString = question.Response && question.Response.RValue, row,
+        var doc = this.XMLDoc || XMLDoc, question = this.question, dynamicTagName = 'column',
+            responseDateString = question.Data.Response && question.Data.Response.RValue, row,
             calendar = new Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
             MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year';
             // #region calendar HTML elements.
@@ -230,7 +249,7 @@ function initializeRenderers() {
         }
 
         // 'e' can be event object or number representing an year.
-        monthSelect.onchange = function (e) {
+        monthSelect.onchange = function (e, year) {
             var selectedMonth;
             var currentMonth ;
             var currentDay;
@@ -246,13 +265,18 @@ function initializeRenderers() {
                 daysInSelectedMonth = calendar.getDaysInMonth(selectedMonth);
                 daysInCurrentMonth = calendar.getDaysInMonth(currentMonth);
 
-                resolveDaysOptionsCount();
-                resolveSelectedDay();
                 calendar.month = selectedMonth;
             } else {               
                 monthSelect.selectedIndex = e;
+                year = year || calendar.year;
+                daysInSelectedMonth = calendar.getDaysInMonth(e + 1, year);
+                daysInCurrentMonth = 31;
+
                 calendar.month = e + 1;
             }
+
+            resolveDaysOptionsCount();
+            resolveSelectedDay();
             
             // Check if selected month days are less or more than current month days.
             // Hides or shows days options based on selected month.
@@ -299,39 +323,34 @@ function initializeRenderers() {
                 }
 
                 calendar.year = selectedYear;
-            } else {                
-                setYearSelectIndex(e);
+            } else {
+                selectedYear = e;
                 calendar.year = e;
             }
 
-            function setYearSelectIndex(year) {
-                // '+' for fast parsing to Number.
-                var lastYear = Number(yearSelect.lastChild.innerText);
-                var firstYear = Number(yearSelect.firstChild.innerText);
-                if (year > lastYear) {
-                    year = lastYear;
-                }
-                if (year < firstYear) {
-                    year = firstYear;
-                }
-                yearSelect.selectedIndex = year - firstYear;
-            }
+            yearSelect.selectedIndex = selectedYear - Number(yearSelect.firstChild.value);
         };
         // #endregion
         
         // If question has 'Response'  and 'Response.RValue'
-        if (responseDateString) {           
-            responseDate = new Date(responseDateString);
-            
-            day = responseDate.getDate();
-            daySelect.selectedIndex = day - 1;
-            daySelect.onchange(day);
-            monthSelect.onchange(responseDate.getMonth());
-            yearSelect.onchange(responseDate.getFullYear());
+        if (responseDateString) {
+            restoreResponseDate();         
         }
 
         row = createRow(form);
-        insertDynamicColumns(doc, row);
+        insertDynamicContent(doc, row, dynamicTagName);
+
+        function restoreResponseDate() {
+            var day, month, year, responseDate = new Date(responseDateString);
+            day = responseDate.getDate();
+            month = responseDate.getMonth();
+            year = responseDate.getFullYear();
+            
+            daySelect.selectedIndex = day - 1;
+            daySelect.onchange(day);
+            monthSelect.onchange(month, year);
+            yearSelect.onchange(year);
+        }
 
         function updateDateSelect(selectedIndex) {
             daySelect.selectedIndex = selectedIndex;
@@ -395,88 +414,39 @@ function initializeRenderers() {
 
         // If 'columns' is node, add it directly.
         if (columns.nodeName) {
-            cell = createCell(columns, cellContent);
-            cell.setAttribute('class', cellClass);
-            row.appendChild(cell);
+            appendCell(columns);
         } else {
             for (i = 0; i < columnsCount; i++) {
-                cell = createCell(columns[i], cellContent);
-                cell.setAttribute('class', cellClass);
-                row.appendChild(cell);
+                appendCell(columns[i]);
             }
+        }
+
+        function appendCell(column) {
+            cell = createCell(column, cellContent);
+            cell.setAttribute('class', cellClass);
+            row.appendChild(cell);
         }
 
         return row;
     }
-
-    // #region original 'createCell'
-    //function createCell(column, cellContent) {
-    //    /// <summary>Creates 'td' element and adds content to it. </summary>
-    //    /// <param name='column' type='Element'>Element containing info about the cell. </param>
-    //    /// <param name='cellContent' type='Object'>Object representing the HTMLElement content of the cell. </param>   
-    //    /// <returns type="Element">A td element.</returns>
-    //    var possibleColumnNames = ['column', 'control_value'];
-    //    var cell = document.createElement('td'), element, wrappingElement, valueAttr = column.getAttribute('value'),
-    //        dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
-
-    //    cell.innerText = column.getAttribute('display');
-
-    //    if (valueAttr) {
-    //        cell.setAttribute(VALUE_ATTRIBUTE, valueAttr);
-    //    }
-    //    // If is dynamic column
-    //    if (dynamicAttribute) {
-    //        cell.innerText = dynamicAttribute;
-    //    }
-
-    //    cell.setAttribute('colspan', column.getAttribute('columns') || 1);
-
-    //    if (possibleColumnNames.indexOf( column.localName) === -1) {
-    //        cell.appendChild(column);
-    //    } else {
-    //        if (cellContent !== undefined) {
-    //            element = document.createElement(cellContent.elementType);
-    //            cellContent.attributes.forEach(function (attr) {
-    //                element.setAttribute(attr.name, attr.value);
-    //            });
-
-    //            if (cellContent.wrappingElement !== undefined) {
-    //                wrappingElement = document.createElement(cellContent.wrappingElement);
-    //                wrappingElement.appendChild(element);
-    //                cell.appendChild(wrappingElement);
-    //            } else {
-    //                cell.appendChild(element);
-    //            }
-    //        }
-    //    }
-       
-    //    return cell;
-    //}
-    // #endregion
 
     function createCell(column, cellContent) {
         /// <summary>Creates 'td' element and adds content to it. </summary>
         /// <param name='column' type='Element'>Element containing info about the cell. </param>
         /// <param name='cellContent' type='Object'>Object representing the HTMLElement content of the cell. </param>   
         /// <returns type="Element">A td element.</returns>
-        var possibleColumnNames = ['column', 'control_value'];
-        var cell = document.createElement('td'), element, wrappingElement, valueAttr = column.getAttribute('value'),
+        var possibleColumnNames = ['column', 'control_value'], cell = document.createElement('td'),
+            element, displayAttrValue, columnValueAttr = column.getAttribute('value'),
+            // dynamic attribute might be 'QText' or 'ExternalRef'
             dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
 
-
-        if (valueAttr) {
-            cell.setAttribute(VALUE_ATTRIBUTE, valueAttr);
+        if (columnValueAttr) {
+            cell.setAttribute(VALUE_ATTRIBUTE, columnValueAttr);
         }
-        // If is dynamic column
-        if (dynamicAttribute) {
-            cell.innerText = dynamicAttribute;
-        } else {
-            cell.innerText = column.getAttribute('display');
-        }
-
+        
         cell.setAttribute('colspan', column.getAttribute('columns') || 1);
 
-        if (possibleColumnNames.indexOf(column.localName) === -1) {
+        if (possibleColumnNames.indexOf(column.localName) < 0) {
             cell.appendChild(column);
         } else {
             if (cellContent !== undefined) {
@@ -484,7 +454,18 @@ function initializeRenderers() {
             }
         }
 
-        // Creates the elements based on 'cellElement' object and inserts them in cell
+         //If is dynamic column
+        if (dynamicAttribute) {
+            cell.innerText = dynamicAttribute;
+        } else {
+            // Insert display text at beginning of string
+            displayAttrValue = column.getAttribute('display');
+            if (displayAttrValue !== null) {
+                cell.innerHTML = cell.innerHTML + displayAttrValue;    
+            }            
+        }
+
+        // Creates the elements based on 'cellContent' object and inserts them in cell
         function parseCellContent(cell, cellContent) {
             var elements = cellContent.elements;
             elements.forEach(function (elem) {
@@ -503,9 +484,11 @@ function initializeRenderers() {
 
             function createElement(elem) {
                 var element = document.createElement(elem.type);
-                elem.attributes.forEach(function (attr) {
-                    element.setAttribute(attr.name, attr.value);
-                });
+                if (elem.attributes && elem.attributes.length) {
+                    elem.attributes.forEach(function (attr) {
+                        element.setAttribute(attr.name, attr.value);
+                    });
+                }               
 
                 return element;
             }
@@ -514,27 +497,35 @@ function initializeRenderers() {
         return cell;
     }
 
-    function insertDynamicColumns(doc, row) {        
-        var columns = Array.prototype.slice.call(doc.getElementsByTagName('column'), 0);
+    function insertDynamicContent(doc, row, contentType, contentClass) {
+        var dynamicContent = Array.prototype.slice.call(doc.getElementsByTagName(contentType), 0);
 
         var firstChild = row.firstChild;
-        columns.forEach(function (col) {
-            var cell, value;
-            // If 'column' tag contains dynamic data: Example:   '<column display="%%ExternalRef%%"/>'
-            if (col.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
-                col.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
+        dynamicContent.forEach(function (content) {
+            var cell, value, columnsAttributeValue;
+            // If 'column' tag contains dynamic data: 
+            //Example:   '<column ExternalRef='Some dynamic content' display="ExternalRef"/>'             
 
+            if (content.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
+                content.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
+                cell = createCell(content);
+                cell.setAttribute('class',contentClass ||' ' + 'cell');
+                cell.innerText = content.getAttribute(Q_TEXT) || content.getAttribute(EXTERNAL_REF);
+                if (firstChild !== undefined) {
+                    row.insertBefore(cell, firstChild);
+                } else {
+                    row.appendChild(cell);
+                }                
             }
 
-            if (col.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
-                col.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
-                cell = createCell(col);
-                cell.setAttribute('class', 'cell');
-                cell.innerText = col.getAttribute(Q_TEXT) || col.getAttribute(EXTERNAL_REF);
-                row.insertBefore(cell, firstChild);
+            columnsAttributeValue = content.getAttribute('columns');
+            if (columnsAttributeValue !== null) {
+                cell.setAttribute('colspan', columnsAttributeValue);
             }
         });
     }
+
+
     // #endregion
 
     // #region rendering objects     
@@ -550,8 +541,8 @@ function initializeRenderers() {
             return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
         }
 
-        Calendar.prototype.getDaysInMonth = function (month) {          
-            return new Date(this.year, month, 0).getDate();
+        Calendar.prototype.getDaysInMonth = function (month, year) {          
+            return new Date(year || this.year, month, 0).getDate();
         }
 
         return Calendar;

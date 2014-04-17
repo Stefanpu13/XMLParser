@@ -4,43 +4,29 @@
 var XMLRendererFactory = (function () {
     // Constructor function.
     var XMLRenderer = (function () {
-        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc) {            
+        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc) {
             this.question = questionObject;
             this.XMLDoc = XMLDoc;
             this.convertToHTML = XMLRenderingFunc;
-        }       
+        }
         // function is set to prototype and not copied to each object.
         XMLRenderer.prototype.convertToHTML = function () { };
 
         return XMLRenderer;
     })(),
     // Assosiative array of rendering functions.
-        renderers = {}, 
+        renderers = {},
         rootTag = 'eval_question',
         XMLTypeAttributeName = 'display_type',
-        labelPatternAttribute = 'label_pattern'
-        
-
-    var currentSelectedRenderer;
+        labelPatternAttribute = 'label_pattern',
+        EXTERNAL_REF = 'ExternalRef',
+        Q_TEXT = 'QText', currentSelectedRenderer;
     
     function addXMLRenderer(XMLType, renderFunc) {
         /// <summary>Adds XML renderer based on the XML type </summary>
         /// <param name='XMLType' type='String'>The XML type. </param>
-        /// <param name='renderFunc' type='Function'>The XML rendering function. </param>        
-
-        // Properties are Case Sensitive!! Make case INSENSITIVE access.
-        //  XMLType = 'TeXt' should be the same as XMLType= text;
-        var XMLTypeToLower = XMLType.toLowerCase && XMLType.toLowerCase();
-
-        if (XMLTypeToLower !== undefined) {
-            // 'renderers[XMLType] === undefined' checks for inherited properties. 
-            if (renderers[XMLType] === undefined || renderers.hasOwnProperty(XMLTypeToLower)) {               
-                renderers[XMLTypeToLower] = renderFunc;
-                
-            } else {
-                throw new Error('\'XMLType\' is inherited property and can not be added.');
-            }
-        }       
+        /// <param name='renderFunc' type='Function'>The XML rendering function. </param>  
+        renderers[XMLType] = renderFunc;
     }
 
     function getXMLRenderer(questionString) {
@@ -52,12 +38,10 @@ var XMLRendererFactory = (function () {
         var XMLDoc = parseXML(questionObject),
             questionTag = XMLDoc.getElementsByTagName(rootTag).item(0),
             displayType = questionTag.getAttribute(XMLTypeAttributeName),
-            renderFunc,
-            // Convert to lower case.
-            displayTypeToLower = displayType.toLowerCase && displayType.toLowerCase();
+            renderFunc;           
 
-        if (displayTypeToLower) {
-            renderFunc = renderers[displayTypeToLower]; 
+        if (displayType) {
+            renderFunc = renderers[displayType];
             if (renderFunc !== undefined) {
                 // Make a copy of the renderer!!!                
                 return new XMLRenderer(questionObject, XMLDoc, renderFunc);                
@@ -73,49 +57,40 @@ var XMLRendererFactory = (function () {
         var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition;
         // IE throws error if XML is invalid.
         try {
-            if (window.DOMParser) {
-                parser = new DOMParser();
-                XMLDoc = parser.parseFromString(XMLContent, "text/xml");
 
-            } else { // Internet Explorer 8
-                XMLDoc = new ActiveXObject("Microsoft.XMLDOM");
-                XMLDoc.async = false;
-                XMLDoc.loadXML(txt);
-            }
+            parser = new DOMParser();
+            XMLDoc = parser.parseFromString(XMLContent, "text/xml");
 
             addLabelTags(XMLDoc, question);
         } catch (e) {
-            throw new Error('Can not get XML renderer. Invalid XML content');
+            //throw new Error('Can not get XML renderer. Invalid XML content');
+            throw new Error(e.message);
         }        
         // Chrome 33, FF 28, Opera 20, Safari 5.1.7 do not throw exception if XML is invalid.
         if (isValidXML(XMLDoc) === false) {
-
             throw new Error('Can not get XML renderer. Invalid XML content');
         }
 
         // Adds two more tags for for '%%ExternalRef%%' and '%%QText%%' or replaces existing values.
         function addLabelTags(XMLDoc, questionObject) {
             var root = XMLDoc.getElementsByTagName(rootTag)[0], extRefValue,
-                label = root.getAttribute(labelPatternAttribute), attrName, labels,
-                attrValue, tag, tagValue, oldNode, currentLabel, columns, question = questionObject.Data;
-                //labelsValues = ['%%ExternalRef%%','%%QText%%'];            
+                label = root.getAttribute(labelPatternAttribute), labels,
+                attrValue, tag, tagName, tagValue, oldNode, columns, question = questionObject.Data, i;
+                //labelsValues = ['ExternalRef','QText'];            
 
             if (label) {
                 labels = label.split('|');
 
                 // create new tags with the names of the label values - 'ExternalRef' and 'QText'
                 // add new tags ad begining of root tag - will be used as rows
-                if (labels.length == 2) {
-                    for (var i = 0; i < labels.length; i++) {                                              
-                        appendTagToXML(labels[i], 2, -2);
+                if (labels.length >= 2) {
+                    for (i = 0; i < labels.length; i++) {
+                        tagName = 'column';
+                        appendTagToXML(labels[i], tagName);
                     }
-                } else { // %%ExternalRef%%- %%QText%%
-                    //extRefValue = (question.ExternalRef) || '';
-                    //if (extRefValue !=='') {
-                    //    extRefValue+='- '
-                    //}
-                    //currentLabel = labels[0].replace('%%ExternalRef%%- ', extRefValue);
-                    appendTagToXML(labels[0], 2, -2);
+                } else { // %%ExternalRef%%- %%QText%%                    
+                    tagName = 'row'
+                    appendTagToXML(labels[0], tagName);
                 }
 
                 oldNode = XMLDoc.getElementsByTagName(rootTag)[0];
@@ -124,30 +99,58 @@ var XMLRendererFactory = (function () {
                 columns = XMLDoc.getElementsByTagName('column');
                 if (columns) {
                     // Replace 'ExtRef' and Qtext
-                    for (var i = 0; i < 2; i++) {
+                    for (i = 0; i < 2; i++) {
                         
-                        if (columns[i].getAttribute('display') === '%%ExternalRef%%') {
-                            //columns[i].setAttribute('display', question['%%ExternalRef%%'] || '');
-                            columns[i].setAttribute('ExternalRef', question['ExternalRef'] || '');
-                        } else if (columns[i].getAttribute('display') === '%%QText%%') {
-                            //columns[i].setAttribute('display', question['%%QText%%'] || '');
-                            columns[i].setAttribute('QText', question['QText'] || '');
+                        if (columns[i].getAttribute('display') === '%%ExternalRef%%') {                           
+                            columns[i].setAttribute(EXTERNAL_REF, question[EXTERNAL_REF] || '');
+                        } else if (columns[i].getAttribute('display') === '%%QText%%') {                            
+                            columns[i].setAttribute(Q_TEXT, question[Q_TEXT] || '');
                         }
                     }
                 }
             }
 
-            function appendTagToXML(currentLabel, startIndex, endIndex) {
-                attrName = currentLabel.slice(startIndex, endIndex); // Remove '%' from label.
-                // get value from object
-                attrValue = question[attrName];
-                // add new tag to XMLDoc. Use unified tag name for later use in 'createRow' and 'createCell' methods.
-                tag = XMLDoc.createElement('column');
-                tag.setAttribute(attrName, attrValue);
-                tag.setAttribute('display', currentLabel);
+            function appendTagToXML(currentLabel, tagName) {
+                var tags, attrName, separator;
+                // Remove '%' from label.
+                while (currentLabel.indexOf('%%') >= 0) {
+                    currentLabel = currentLabel.replace('%%', '');
+                }
 
-                tagValue = XMLDoc.createTextNode(attrValue);
-                tag.appendChild(tagValue);
+                tag = XMLDoc.createElement(tagName);
+                attrName = currentLabel;
+
+                if (tagName === 'row') {
+                    // Add the two dynamic values to same tag. Use 'ExternalRef' as attr name.
+                    // That attr name will later be used in 'insertDynamicContent'
+                    separator = getSeparator();
+                  
+                    tags = currentLabel.split(separator);
+                    attrValue = question[tags[0]] + separator;
+                    attrValue += question[tags[1]];                    
+                    attrName = tags[0];
+                    tag.setAttribute(attrName, attrValue);
+                    // In original method 'ParseLabelPattern' if dynamic is NOT type "%%ExternalRef%%|%%QText%%" 
+                    // its colspan is assigned value of 2. Add attribute 'columns' and use it in 'insertDynamicContent' method.
+                    tag.setAttribute('columns', 2);
+                } else {
+                    attrValue = question[currentLabel];
+                    tag.setAttribute(currentLabel, attrValue);
+                }  
+                // set 'display' value to 'ExternalRef' or 'QText'
+                tag.setAttribute('display', attrName);
+
+                function getSeparator() {
+                    var exterRefIndex, qTextIndex, separator, separatorIndex;
+                    exterRefIndex = 0;
+                    qTextIndex = currentLabel.indexOf(Q_TEXT);
+                    separatorIndex = EXTERNAL_REF.length;
+                    separator = currentLabel.substring(separatorIndex, qTextIndex);
+
+                    return separator;
+                }
+
+                //// Adds content to tag                
                 root.appendChild(tag);
             }
         }

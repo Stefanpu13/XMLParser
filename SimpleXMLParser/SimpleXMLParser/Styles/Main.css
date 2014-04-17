@@ -25,7 +25,7 @@
     width: auto;
     padding: 5px;
     margin: 5px;
-     text-align: center;
+   
 }
 
 .scale-cell { 
@@ -34,5 +34,19 @@
 }
 
 .radio-cell {
-    background-color:white;
+    background-color:white; 
+}
+.vertical-radio-cell{
+    display: block;
+    text-align:left;
+    width:900px;
+}
+
+.vertical-radio-label {
+    display: block;
+    background-color: green;
+}
+
+.label {
+    background-color:lightgreen;
 }
