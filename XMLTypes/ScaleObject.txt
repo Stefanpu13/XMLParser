@@ -46,7 +46,7 @@
 	"QuestionerID": 4528,
         "Response": null,
 	"HasComments": false,
-        "DisplayDefinition":"<eval_question question_type=\"passive\" display_type=\"scale\" is_bold=\"true\"><bgcolor value=\"fedcba\" /><column_count value=\"6\" /><header_lines><line><column display=\"%%QText%%\" columns=\"2\" /><column display=\"Strongly Agree\" columns=\"1\" /><column display=\"Agree\" columns=\"1\" /><column display=\"Undecided\" columns=\"1\" /><column display=\"Disagree\" columns=\"1\" /><column display=\"Strongly Disagree\" columns=\"1\" /></line></header_lines></eval_question>"
+        "DisplayDefinition":"<eval_question question_type=\"passive\" display_type=\"scale\" is_bold=\"true\"><bgcolor value=\"fedcba\" /><column_count value=\"6\" /><header_lines><line><column display=\"%%QText%%\" value=\"someQText\" columns=\"2\" /><column display=\"Strongly Agree\" columns=\"1\" /><column display=\"Agree\" columns=\"1\" /><column display=\"Undecided\" columns=\"1\" /><column display=\"Disagree\" columns=\"1\" /><column display=\"Strongly Disagree\" columns=\"1\" /></line></header_lines></eval_question>"
 		,
 	"IsRequired": false
 	}

@@ -1,27 +1,27 @@
-	{
-"ID": 758909,
-"Data": {
-	"ExternalRef": "1",
-	"QTypeID": 139,
-	"QText": "Select the name of the preceptor you evaluating.",	
-	"DTModified": "",
-	"CreatedBy": null,
-	"ModifiedBy": "",
-	"Active": true,
-	"Code": "PE1",
-	"GroupID": null,
-	"SubGroupID": 42073,
-        "Seq": null,
-	"TypeName": "Object_Type_Preceptor",
-	"SubGroupText": "Preceptor Evaluation ",
-	"Scenario": "",
-	"QuestionerID": 4528,
-        "Response": null,
-	"HasComments": false,
-        "DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"vertical_group\" is_bold=\"true\" label_pattern=\"%%ExternalRef%%- %%QText%%\" bgcolor=\"ccffcc\"><repeat_last_scale value=\"true\" /><label_span value=\"2\" /><control_values><control_value value=\"PT P2 56a\" display=\"a Arrange a meeting with the parents and social worker\" /><control_value value=\"PT P2 56b\" display=\"b Say to the parents, &quot;You might want to consider going home for now because nothing is going on.&quot;\" /><control_value value=\"PT P2 56c\" display=\"c Discuss with the parents their unusual behavior\" /><control_value value=\"PT P2 56d\" display=\"d Encourage the parents to take care of themselves because Mike needs them to be healthy to take care of him\" /></control_values></eval_question>"
-		,
-	"IsRequired": false
+		{
+	"ID": 758909,
+	"Data": {
+		"ExternalRef": "1",
+		"QTypeID": 139,
+		"QText": "Select the name of the preceptor you evaluating.",	
+		"DTModified": "",
+		"CreatedBy": null,
+		"ModifiedBy": "",
+		"Active": true,
+		"Code": "PE1",
+		"GroupID": null,
+		"SubGroupID": 42073,
+			"Seq": null,
+		"TypeName": "Object_Type_Preceptor",
+		"SubGroupText": "Preceptor Evaluation ",
+		"Scenario": "",
+		"QuestionerID": 4528,
+			"Response": null,
+		"HasComments": false,
+			"DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"vertical_group\" is_bold=\"true\" label_pattern=\"%%ExternalRef%%- %%QText%%\" bgcolor=\"ccffcc\"><repeat_last_scale value=\"true\" /><label_span value=\"2\" /><control_values><control_value value=\"PT P2 56a\" display=\"a Arrange a meeting with the parents and social worker\" /><control_value value=\"PT P2 56b\" display=\"b Say to the parents, &quot;You might want to consider going home for now because nothing is going on.&quot;\" /><control_value value=\"PT P2 56c\" display=\"c Discuss with the parents their unusual behavior\" /><control_value value=\"PT P2 56d\" display=\"d Encourage the parents to take care of themselves because Mike needs them to be healthy to take care of him\" /></control_values></eval_question>"
+			,
+		"IsRequired": false
+		}
 	}
-}
 
 

@@ -17,7 +17,7 @@
 	"SubGroupText": "Preceptor Evaluation ",
 	"Scenario": "",
 	"QuestionerID": 4528,
-        "Response": null,
+    "Response": {"RValue": "2012/4/11"},
 	"HasComments": false,
         "DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"date\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><repeat_last_scale value=\"false\" /></eval_question>"
 		,
