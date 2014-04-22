@@ -5,9 +5,8 @@
 $(document).ready(function () {
     var button = document.getElementById('btn');
     var fileInput = document.getElementById('fileInput');
-    var END_OF_QUESTION = '/// End Of Question ///';    
-
-    initializeRenderers();
+    var END_OF_XML = '/// End Of XML ///';
+    
     document.onkeydown = function (event) {
         //if (event.keyCode === 13) {
         //    convertXMLToHTML();
@@ -23,16 +22,14 @@ $(document).ready(function () {
         var question = container.value;
         var renderer, element;
 
-        // Last value in array is empty string.
-        // Array represents the XMLs written to file when respective
-        // web page questionary was rendered.
+      
         // XMLs are separated by '/// End Of XML ///' string.
-        allQuestions = question.split(END_OF_QUESTION);
+        allQuestions = question.split(END_OF_XML);
 
-        for (var i = 0, currentQuestion; currentQuestion = allQuestions[i] ; i++) {
+        for (var i = 0, currentQuestion; currentQuestion = allQuestions[i]; i++) {
+
+            currentQuestion = currentQuestion.trim();
             if (currentQuestion) {
-
-                currentQuestion = currentQuestion.trim();
                 // convert string to object.                        
                 renderer = XMLRendererFactory.getXMLRenderer(currentQuestion);
                 try {
@@ -41,10 +38,10 @@ $(document).ready(function () {
                     console.log(e.message);
                     element = '';
                 }
-            }            
-            
+            }
+
             // Is the element an array?
-            if (element.forEach) {
+            if (element && element.forEach) {
                 element.forEach(function (elem) {
                     addDOMElement('table-container', elem);
                 });
@@ -77,7 +74,8 @@ $(document).ready(function () {
             reader.onload = (function (f) {
                 return function () {
                     content += reader.result;
-                    container.innerText += content;
+                    //container.innerText += content;
+                    container.innerHTML += content;
                 }
             })(file);
 
