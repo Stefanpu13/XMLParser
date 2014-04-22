@@ -41,14 +41,31 @@
     }
 
     function labelRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc, row, labelSpanTag = 'label_span', colSpan,
-            cellClass = 'label-cell';
+        var doc = this.XMLDoc || XMLDoc, row, labelSpanTag = 'label_span',colSpanAttribute, colSpan,
+            cellClass = 'label-cell', repeatlastScaleAttribute, repeatlastScale, cell;
         
         labelSpanTag = doc.getElementsByTagName(labelSpanTag)[0];
-        colSpan = labelSpanTag.getAttribute('value');        
+        colSpanAttribute = labelSpanTag.getAttribute('value');
+      
 
-        row = document.createElement('tr');        
-        insertDynamicContents(doc, row, 'row', 'label');        
+        colSpan = parseInt(colSpanAttribute);
+
+        if (colSpanAttribute[0] === '+') {
+            colSpan += XMLRendererFactory.QuestionerDataStorage.dataColumnCount;
+        }
+
+        row = document.createElement('tr');
+        insertDynamicContents(doc, row, 'row', cellClass);
+        row.firstChild.setAttribute('colspan', colSpan);
+
+        repeatlastScaleAttribute = doc.getElementsByTagName('repeat_last_scale')[0];
+        repeatlastScale = repeatlastScaleAttribute.getAttribute('value');
+        if (repeatlastScale === 'true') {
+            cell = document.createElement('td');
+            cell.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
+            cell.setAttribute('class', cellClass + ' cell');
+            row.appendChild(cell);
+        }
 
         return row;
     }
@@ -56,10 +73,14 @@
     function scaleRenderer(XMLDoc) {
         var doc = this.XMLDoc || XMLDoc,
         rows = [], row, cell, lines, columns,
-        linesCount, columnsCount, i = 0, j = 0,
+        linesCount,columsCountAttribute, columnsCount, i = 0, j = 0,
+        lines = doc.getElementsByTagName('line'), linesCount = lines.length;
 
-        lines = doc.getElementsByTagName('line');
-        linesCount = lines.length;
+        columsCountAttribute = doc.getElementsByTagName('column_count')[0];
+        if (columsCountAttribute!== undefined) {
+            XMLRendererFactory.QuestionerDataStorage.dataColumnCount = columnsCount =
+            Number(columsCountAttribute.getAttribute('value'));
+        }
 
         // for each 'line' tag. 'columnsCount' might differ from 'columns_count_attr'.
         for (; i < linesCount; i++) {
@@ -117,6 +138,9 @@
             table.appendChild(controlValuesRow);
             table.setAttribute('class', 'inner-table');
             row = createRow(table, undefined, innerTableClass);
+            //Uncomment the following code if you want to use 'dataColumnCount' as in original method.
+            // Also put in comment 'width:100%' of '.inner-table'.
+             // row.firstChild.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
             insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
 
         } else {
@@ -180,19 +204,18 @@
         if (incompleteRowTag !== undefined) {
             incompleteRowTagValue = incompleteRowTag.getAttribute('value');
 
-            if (incompleteRowTagValue !== 'end') {
-                selectElement.setAttribute('columns', 2);
-                tableRow = createRow(selectElement, undefined, 'select-cell');
-                selectElement.removeAttribute('columns');
+            if (incompleteRowTagValue !== 'end') {                
+                tableRow = createRow(selectElement, undefined, 'select-cell');               
+                tableRow.firstChild.setAttribute('colspan', 2);
                 insertDynamicContents(doc, tableRow, dynamicTagName);
 
                 if (incompleteRowTagValue === 'start') {
                     currentIncompleteRow = tableRow;
                 }
-            } else {
-                selectElement.setAttribute('columns', 2);
+            } else {                
                 appendCell(currentIncompleteRow, undefined, selectElement, 'select-cell cell');
-                selectElement.removeAttribute('columns');
+                // The 'select' element is now last child.
+                currentIncompleteRow.lastChild.setAttribute('colspan', 2);
             }
 
         }
@@ -200,9 +223,6 @@
             tableRow = createRow(selectElement, undefined, 'select-cell');            
             insertDynamicContents(doc, tableRow, dynamicTagName);
         }
-
-
-
 
         function createOptionElement(columnElement) {
             var optionElement = document.createElement('option');

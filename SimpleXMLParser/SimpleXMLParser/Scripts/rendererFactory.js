@@ -2,6 +2,12 @@
 // Gets XML renderer based on the type of the XML content. 
 // Different renderers present different strategies to render XML to html.
 var XMLRendererFactory = (function () {
+    var QuestionerDataStorage = (function () {
+        return {
+            dataColumnCount:0
+        }
+    })();
+
     // Constructor function.
     var XMLRenderer = (function () {
         var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc) {
@@ -10,7 +16,7 @@ var XMLRendererFactory = (function () {
             this.convertToHTML = XMLRenderingFunc;                        
         }
         // function is set to prototype and not copied to each object.
-        XMLRenderer.prototype.convertToHTML = function () { };
+        XMLRenderer.prototype.convertToHTML = function () { };        
 
         return XMLRenderer;
     })(),
@@ -40,14 +46,15 @@ var XMLRendererFactory = (function () {
             questionObject = JSON.parse(questionString);
         }
 
-        var XMLDoc = parseXML(questionObject), XML_TYPE_ATTRIBUTE_NAME = 'display_type',
+        var XMLDoc = parseXML(questionObject),
+            XML_TYPE_ATTRIBUTE_NAME = 'display_type',
             questionTag = XMLDoc.getElementsByTagName(ROOT_TAG).item(0),
             displayType = questionTag.getAttribute(XML_TYPE_ATTRIBUTE_NAME),
             renderFunc;
 
         renderFunc = renderers[displayType];
-        if (renderFunc !== undefined) {
-            // Make a copy of the renderer!!!                
+        if (renderFunc !== undefined) {           
+            // Make a copy of the renderer!!!  
             return new XMLRenderer(questionObject, XMLDoc, renderFunc);
         } else {
             throw new Error('\'XMLType\' is not supported.')
@@ -58,7 +65,7 @@ var XMLRendererFactory = (function () {
         var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition,
         parser = new DOMParser();
                 
-        //XMLContent = changeNOBRWithSpan(XMLContent);
+        XMLContent = changeNOBRWithSpan(XMLContent);
 
         XMLDoc = parser.parseFromString(XMLContent, "text/xml");
         if (XMLDoc.getElementsByTagName('parsererror').length > 0) {
@@ -195,6 +202,7 @@ var XMLRendererFactory = (function () {
 
     return {
         addXMLRenderer: addXMLRenderer,
-        getXMLRenderer: getXMLRenderer
+        getXMLRenderer: getXMLRenderer,
+        QuestionerDataStorage: QuestionerDataStorage
     }
 })();
