@@ -31,8 +31,16 @@ var XMLRendererFactory = (function () {
         /// <summary>Gets XML renderer based on the type of the XML content </summary>
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
-        var questionObject = JSON.parse(questionString),
-            XMLDoc = parseXML(questionObject), XML_TYPE_ATTRIBUTE_NAME = 'display_type',
+        var questionObject;
+        try{
+            questionObject = JSON.parse(questionString);
+        } catch (e) { // Invalid JSON. Possible reasons: unescaped characters(quotes)
+            console.log(e.message);
+            questionString = escapeQuote(questionString);
+            questionObject = JSON.parse(questionString);
+        }
+
+        var XMLDoc = parseXML(questionObject), XML_TYPE_ATTRIBUTE_NAME = 'display_type',
             questionTag = XMLDoc.getElementsByTagName(ROOT_TAG).item(0),
             displayType = questionTag.getAttribute(XML_TYPE_ATTRIBUTE_NAME),
             renderFunc;
@@ -49,9 +57,14 @@ var XMLRendererFactory = (function () {
     function parseXML(question) {
         var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition,
         parser = new DOMParser();
-        
-        XMLContent = makeXMLValid(XMLContent);
+                
+        //XMLContent = changeNOBRWithSpan(XMLContent);
+
         XMLDoc = parser.parseFromString(XMLContent, "text/xml");
+        if (XMLDoc.getElementsByTagName('parsererror').length > 0) {
+            //TODO: fix erroneous parts in 'XMLContent' - unescaped symbols, mostly.
+            XMLDoc = parser.parseFromString(XMLContent, "text/xml");
+        }
 
         addLabelTags(XMLDoc, question);
 
@@ -150,7 +163,7 @@ var XMLRendererFactory = (function () {
         return text;
     }
 
-    function makeXMLValid(content) {
+    function changeNOBRWithSpan(content) {
         // Invalid '<' and '>'
         // Replace nobr with system of 'class' attr and 'span'
         if (content.indexOf('nobr') >= 0) {
@@ -161,6 +174,23 @@ var XMLRendererFactory = (function () {
         }
 
         return content
+    }
+
+    function escapeQuote(text) {
+        var displayAttributeValue = /display=\\"[^(display)].*(".*")\\"/g;
+        var matches = text.match(displayAttributeValue), length = matches.length, i = 0,
+            formatedText, displayValue, displayValuePattern = /\\"(.*)\\"/;
+
+        while (curr = displayAttributeValue.exec(text)) {
+            text = text.replace(curr[1], '&quot;' + curr[1].slice(1, -1) + '&quot;');            
+        }
+      
+        return text;
+    }
+
+    function escapeOpeningAndClosingTag(content) {
+        var length = content.length;
+        // TODO: Replace unescaped '<' with '&lt;' and unescaped '>' with '&gt;' 
     }
 
     return {
