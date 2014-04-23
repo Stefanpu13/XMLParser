@@ -3,8 +3,14 @@
 // Different renderers present different strategies to render XML to html.
 var XMLRendererFactory = (function () {
     var QuestionerDataStorage = (function () {
+        var dataColumnCount;
         return {
-            dataColumnCount:0
+            get dataColumnCount() {
+                return dataColumnCount || 4; // As is in original method.
+            },
+            set dataColumnCount(value) {
+                dataColumnCount = value;
+            }
         }
     })();
 
@@ -185,11 +191,11 @@ var XMLRendererFactory = (function () {
 
     function escapeQuote(text) {
         var displayAttributeValue = /display=\\"[^(display)].*(".*")\\"/g;
-        var matches = text.match(displayAttributeValue), length = matches.length, i = 0,
-            formatedText, displayValue, displayValuePattern = /\\"(.*)\\"/;
+        var matches = text.match(displayAttributeValue), currentMatch;
 
-        while (curr = displayAttributeValue.exec(text)) {
-            text = text.replace(curr[1], '&quot;' + curr[1].slice(1, -1) + '&quot;');            
+        while (currentMatch = displayAttributeValue.exec(text)) {
+            text = text.replace(currentMatch[1],
+                '&quot;' + currentMatch[1].slice(1, -1) + '&quot;');
         }
       
         return text;
