@@ -35,6 +35,8 @@
         textArea.setAttribute('cols', initialTextareaColsCount);
 
         row = createRow(textArea, undefined, textareaClass);
+        row.firstChild.setAttribute('colspan',
+            XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
 
         return row;
@@ -63,7 +65,8 @@
         if (repeatlastScale === 'true') {
             cell = document.createElement('td');
             cell.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
-            cell.setAttribute('class', cellClass + ' cell');
+            cell.className = cellClass + ' cell';
+            
             row.appendChild(cell);
         }
 
@@ -129,14 +132,14 @@
             scales = scaleRenderer(doc);
             scales.forEach(function (scale) {
                 Array.prototype.forEach.call(scale.children, (function (scaleCell) {
-                    scaleCell.setAttribute('class', 'inner-table-scale-cell cell');
+                    scaleCell.className = 'inner-table-scale-cell cell';
                 }));
                 table.appendChild(scale);
             });
             controlValuesRow = createRow(controlValues, cellContent, innerTableRadioCellClass);
 
             table.appendChild(controlValuesRow);
-            table.setAttribute('class', 'inner-table');
+            table.className = 'inner-table';
             row = createRow(table, undefined, innerTableClass);
             //Uncomment the following code if you want to use 'dataColumnCount' as in original method.
             // Also put in comment 'width:100%' of '.inner-table'.
@@ -390,6 +393,8 @@
         }
 
         row = createRow(form);
+        row.firstChild.
+            setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
 
         function restoreResponseDate() {
@@ -472,7 +477,7 @@
 
     function appendCell(row, cellContent, column, cellClass) {
         var cell = createCell(column, cellContent);
-        cell.setAttribute('class', cellClass);
+        cell.className = cellClass;
         row.appendChild(cell);
     }
 
@@ -554,7 +559,7 @@
         if (content.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
             content.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
             cell = createCell(content);
-            cell.setAttribute('class', (contentClass || '') + ' cell');
+            cell.className = (contentClass || '') + ' cell';
 
             addFirst(cell, contentHolder);
         }
