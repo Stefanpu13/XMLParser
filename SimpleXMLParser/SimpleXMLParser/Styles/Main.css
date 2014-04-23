@@ -32,11 +32,14 @@
     display: block;
     text-align:left;  
 }
+.horizontal-radio-cell {
+    text-align:left;
+}
 .vertical-radio-label, .inner-table-label {
-    display: block;
+    display:block;
     background-color: green;   
 }
-.label-cell {
+.label-cell, .horizontal-radio-label {
     background-color:lightgreen;
 }
 .inner-table {
