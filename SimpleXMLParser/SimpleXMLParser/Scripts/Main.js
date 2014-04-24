@@ -31,7 +31,7 @@ $(document).ready(function () {
             currentQuestion = currentQuestion.trim();
             if (currentQuestion) {
                 // convert string to object.                        
-                renderer = XMLRendererFactory.getXMLRenderer(currentQuestion);
+                renderer = XMLRendererFactory.makeXMLRenderer(currentQuestion);
                 try {
                     element = renderer.convertToHTML();
                 } catch (e) {
