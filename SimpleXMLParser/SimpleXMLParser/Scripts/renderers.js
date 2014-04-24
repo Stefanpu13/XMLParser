@@ -7,10 +7,10 @@
         DISPLAY_VERTICAL_GROUP = "vertical_group", DISPLAY_TYPE_DROPDOWN = "drop_box",
         DISPLAY_TYPE_DATE = "date", DISPLAY_TYPE_DATADROPDOWN = "data_dropdown",
         DISPLAY_TYPE_CASCADEDROPDOWN = "cascade_dropdown", EXTERNAL_REF = 'ExternalRef',
-        Q_TEXT = 'QText', currentIncompleteRow, forEach = Array.prototype.forEach
+        Q_TEXT = 'QText', RETURN_ANSWER = 'data-return-answer', currentIncompleteRow, forEach = Array.prototype.forEach
         // Custom attribute to be added to the different answer options.
         // #region custom attributes
-        VALUE_ATTRIBUTE = "data-answer-value",
+        ANSWER_ATTRIBUTE = "data-answer-value",
         COLUMNS_COUNT_ATTTRIBUTE = 'data-columns-count';
     // #endregion
 
@@ -18,9 +18,9 @@
     function textRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, row, dynamicTagName = 'column', textArea,
             textareaClass = 'teaxarea-cell', lengthTag, textAreaMaxLength,
-            initialTextareaColsCount = 50,
+            initialTextareaColsCount = 50, returnsAnswerAttribute = 'not required',
             // As is in original method. Don`t know why this value is chosen.
-            initialTextareaRowsCount = 5; 
+            initialTextareaRowsCount = 5, questionId = this.question.ID; 
 
         textArea = document.createElement('textarea');
 
@@ -34,24 +34,24 @@
         }
         textArea.setAttribute('cols', initialTextareaColsCount);
 
-        row = createRow(textArea, undefined, textareaClass, this.question.ID);        
+        row = createRow(textArea, undefined, textareaClass, questionId, returnsAnswerAttribute);
         row.firstChild.setAttribute('colspan',
             XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
 
-        restoreValue(this.question);
+        restoreAnswer(this.question);
 
-        textArea.onchange = function (e) {
-            row.setAttribute('data-answer-value', textArea.value);
+        textArea.onchange = function updateAnswer(e) {
+            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionId, textArea.value, null));
         };
 
-        function restoreValue(question) {
+        function restoreAnswer(question) {
             var response = question.Data.Response,
                 value = response && response.RValue;
 
             if (value) {
                 textArea.value = value;
-                row.setAttribute('data-answer-value', value);
+                row.setAttribute(ANSWER_ATTRIBUTE, value);
             }
         }
                 
@@ -60,7 +60,7 @@
 
     function labelRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, row, labelSpanTag = 'label_span',colSpanAttribute, colSpan,
-            cellClass = 'label-cell', repeatlastScaleAttribute, repeatlastScale, cell;
+            cellClass = 'label-cell', repeatlastScaleAttribute, repeatlastScale, cell, returnsAnswerAttribute = 'none';
         
         labelSpanTag = doc.getElementsByTagName(labelSpanTag)[0];
         colSpanAttribute = labelSpanTag.getAttribute('value');      
@@ -73,6 +73,7 @@
 
         row = document.createElement('tr');
         row.setAttribute('data-questionId', this.question.ID);
+        row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
         insertDynamicContents(doc, row, 'row', cellClass);
         row.firstChild.setAttribute('colspan', colSpan);
 
@@ -92,7 +93,7 @@
     function scaleRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc,
         rows = [], row, cell, lines, columns,
-        linesCount,columsCountAttribute, columnsCount, i = 0, j = 0,
+        linesCount, columsCountAttribute, columnsCount, i = 0, j = 0, returnsAnswerAttribute = 'none';
         lines = doc.getElementsByTagName('line'), linesCount = lines.length;
 
         columsCountAttribute = doc.getElementsByTagName('column_count')[0];
@@ -104,7 +105,7 @@
         // for each 'line' tag. 'columnsCount' might differ from 'columns_count_attr'.
         for (; i < linesCount; i++) {
             columns = lines[i].getElementsByTagName('column');
-            row = createRow(columns, undefined, 'scale-cell', this.question.ID);            
+            row = createRow(columns, undefined, 'scale-cell', this.question.ID, returnsAnswerAttribute);            
             rows.push(row);
         }
 
@@ -116,7 +117,7 @@
         row, cellContent, lines, i = 0, radioCellClass = 'radio-cell',
         innerTableRadioCellClass = 'inner-table-radio-cell', labelPatternClass = 'label-cell',
         columns, questionId = this.question.ID, dynamicTagName = 'column', table, scales,
-        innerTableClass = 'radio-table-cell', innerTableLabelClass = 'inner-table-label';
+        innerTableClass = 'radio-table-cell', innerTableLabelClass = 'inner-table-label', returnsAnswerAttribute = 'required';
         
         cellContent = {
             elements: [{
@@ -156,7 +157,7 @@
 
             table.appendChild(controlValuesRow);
             table.className = 'inner-table';
-            row = createRow(table, undefined, innerTableClass, questionId);
+            row = createRow(table, undefined, innerTableClass, questionId, returnsAnswerAttribute);
             //Uncomment the following code if you want to use 'dataColumnCount' as in original method.
             // Also put in comment 'width:100%' of '.inner-table'.
             // row.firstChild.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
@@ -170,7 +171,7 @@
             });
 
         } else {
-            row = createRow(controlValues, cellContent, radioCellClass, questionId);
+            row = createRow(controlValues, cellContent, radioCellClass, questionId, returnsAnswerAttribute);
             insertDynamicContents(doc, row, dynamicTagName);
 
             forEach.call(row.childNodes, function (node) {
@@ -190,8 +191,8 @@
         }        
 
         function updateAnswer(node, row) {
-            var answerValue = node.getAttribute('data-answer-value');
-            row.setAttribute('data-answer-value', answerValue);
+            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE);
+            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionId, answerValue, null));
         }
         
         return row;
@@ -200,7 +201,8 @@
     function verticalGroupRenderer(XMLDoc) {
         var doc =  XMLDoc || this.XMLDoc, controlValues,
         row, rows = [], firstRow, splitValue, labelClass, cellContent, lines, controlValuesCount, i = 0,
-        columns, questionID = this.question.ID, dynamicTagName = 'row';
+        columns, questionID = this.question.ID, dynamicTagName = 'row', returnsAnswerAttribute = 'required',
+            labelReturnsAnswerAttribute = 'none', currentSelectedRow;
 
         // cellContent is a 'label' tag with <input type=radio>
         cellContent = {
@@ -239,12 +241,13 @@
                 radioCellClass = 'vertical-radio-cell';
             }
 
-            row = createRow(splittedControlValues, cellContent, radioCellClass, questionID);
+            row = createRow(splittedControlValues, cellContent, radioCellClass, questionID, returnsAnswerAttribute);
             rows.push(row);
         });
 
         if (splitValue === true) {
             firstRow = document.createElement('tr');
+            firstRow.setAttribute(RETURN_ANSWER, labelReturnsAnswerAttribute);
             rows.unshift(firstRow);
             labelClass = 'horizontal-radio-label';
         } else {
@@ -254,13 +257,39 @@
         
         insertDynamicContents(doc, firstRow, dynamicTagName, labelClass);
 
-        //rows.forEach(function (tr) {
+        rows.forEach(function (tr) {            
+            var radioButton = tr.getElementsByTagName('input')[0], 
+              td = tr.lastChild; // row might have two 'td'`s but the last contains the answer.
+            // Answers per row are updated only once. 
+            // Then 'RETURN_ANSWER' attribute is used to determine whether answer should be taken or not.
+            updateAnswer(td, tr); 
 
-        //});
+            radioButton.onchange = function () {
+                if (currentSelectedRow) {
+                    currentSelectedRow.setAttribute(RETURN_ANSWER, labelReturnsAnswerAttribute);
+                    tr.setAttribute(RETURN_ANSWER, 'required');
+                    currentSelectedRow = tr;
+                } else {
+                    // 'else' clause is entered only once - the first time a value is selected.
+                    currentSelectedRow = tr;
+                    rows.forEach(function (tr) {
+                        if (tr !== currentSelectedRow) {
+                            tr.setAttribute(RETURN_ANSWER, 'none');
+                        }
+                    })
+                }                
+            }
+        });
 
-        //function updateAnswer() {
+        function updateAnswer(node, row) {
+            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE);
+            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionID, answerValue, null));
+        }
 
-        //}
+        function restoreAnswer() {
+            // TODO: Implement 'restoreAnswer'.
+            throw new Error("'VerticalGroup renderer' 'restoreAnswer' method not implemented.");
+        }
 
         return rows;
     }
@@ -271,8 +300,9 @@
         var doc = XMLDoc || this.XMLDoc,
             dropDowns = doc.getElementsByTagName('control_values'),
             dropDownsCount = dropDowns.length, i = 0, j = 0, controls, controlsCount, columns = [],
-            selectElement, optionElement, tableRow, tableCell, cellContent,
-            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue,
+            selectElement, optionElement, row, cellContent, returnsAnswerAttribute = 'required',
+            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue, questionObject = this.question,
+            currentSelectedOption,
             colSpanAdjust = 2; // As used in original dorpDown renderer
 
         for (; i < dropDownsCount; i += 1) {
@@ -291,43 +321,93 @@
             incompleteRowTagValue = incompleteRowTag.getAttribute('value');
 
             if (incompleteRowTagValue !== 'end') {                
-                tableRow = createRow(selectElement, undefined, 'select-cell', this.question.ID);
-                tableRow.firstChild.setAttribute('colspan', colSpanAdjust);
-                insertDynamicContents(doc, tableRow, dynamicTagName);
+                row = createRow(selectElement, undefined, 'select-cell', this.question.ID, returnsAnswerAttribute);
+                row.firstChild.setAttribute('colspan', colSpanAdjust);
+                insertDynamicContents(doc, row, dynamicTagName);
 
                 if (incompleteRowTagValue === 'start') {
-                    currentIncompleteRow = tableRow;
+                    currentIncompleteRow = row;
                 }
             } else {                
                 appendCell(currentIncompleteRow, undefined, selectElement, 'select-cell cell');
                 // The 'select' element is now last child.
                 currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
+                row = currentIncompleteRow; // So 
             }
         }
         else {            
-            tableRow = createRow(selectElement, undefined, 'select-cell', this.question.ID);
-            tableRow.firstChild.setAttribute('colspan',
+            row = createRow(selectElement, undefined, 'select-cell', this.question.ID, returnsAnswerAttribute);
+            row.firstChild.setAttribute('colspan',
                 XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
-            insertDynamicContents(doc, tableRow, dynamicTagName);
+            insertDynamicContents(doc, row, dynamicTagName);
         }
 
         function createOptionElement(columnElement) {
             var optionElement = document.createElement('option');
-            optionElement.setAttribute(VALUE_ATTRIBUTE, columnElement.getAttribute('value'));
-            //optionElement.innerText = columnElement.getAttribute('display');
+            //optionElement.setAttribute(ANSWER_ATTRIBUTE, columnElement.getAttribute('value'));
+            optionElement.setAttribute('value', columnElement.getAttribute('value'));
             optionElement.innerHTML = columnElement.getAttribute('display');
 
             return optionElement;
         }
 
-        return tableRow;
+        selectElement.onchange = function (e) {
+            updateAnswer();
+        }
+
+        function updateAnswer() {            
+            var selectedOption = selectElement.options[selectElement.selectedIndex], 
+                selectedOptionValue = selectedOption.value, innerText = selectedOption.innerText,
+                dataOptionAttribute, dataAnswerAttribute,response, responseObject, currentAnswer;
+            if (incompleteRowTag !== undefined) { // multiple answers per row
+
+                if (selectedOptionValue !== '') {
+                    // this should be string that is converted to array
+                    // get current 'data-answer-value' parse 'responseObject'
+                    currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
+                    if (currentAnswer !== null) {
+                        responseObject = JSON.parse(currentAnswer); // will be array of 'response' objects
+                        if (Object.prototype.toString.call(responseObject) === '[object Array]') {
+
+                        }
+                    }                    
+               
+                } else {
+
+                }
+
+            } else {
+                if (selectedOptionValue !== '') {                   
+                    response = {
+                        RValue: innerText,
+                        RValueInt:parseAsNumberOrNull(selectedOptionValue)
+                    }
+                    row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(response));
+                } else {
+                    // If attribute is not removed when '--Select one--' option is selected 
+                    // then 'ANSWER_ATTRIBUTE' will be restored to
+                    // '--Select one--' which might not be persieved as answered question
+                    // (depends on what customer says about drop down questions).                    
+                    row.removeAttribute(ANSWER_ATTRIBUTE);
+                }
+            }
+          
+        }
+
+        function restoreAnswer() {
+            var response = questionObject.Data.Response;
+            var rValue = response && response.RValue;
+            // TODO: finish implementing response answer
+        }
+
+        return row;
     }
 
     function dateRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, question = this.question, dynamicTagName = 'column',
             responseDateString = question.Data.Response && question.Data.Response.RValue, row,
             calendar = new Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
-            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year';
+            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year', returnsAnswerAttribute = 'required';
         // #region calendar HTML elements.
         form = document.createElement('form'),
         daySelect = document.createElement('select'),
@@ -478,7 +558,7 @@
 
         
 
-        row = createRow(form, undefined, '', this.question.ID);
+        row = createRow(form, undefined, '', this.question.ID, returnsAnswerAttribute);
         row.firstChild.
             setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
@@ -486,6 +566,9 @@
         // If question has 'Response'  and 'Response.RValue'
         if (responseDateString) {
             restoreAnswer(); // Should be called after 'row' is created.
+        } else {
+            // Will set the initial date.
+            updateAnswer();
         }
 
         function restoreAnswer() {
@@ -505,7 +588,7 @@
         function updateAnswer() {
             var date = '';
             date = calendar.year + '/' + calendar.month + '/' + calendar.day;
-            row.setAttribute('data-answer-value', date);
+            row.setAttribute(ANSWER_ATTRIBUTE,new Response(question.ID, date, null));
         }
 
         function updateDateSelect(selectedIndex) {
@@ -557,7 +640,7 @@
     //#endregion
 
     // #region helper functions
-    function createRow(columns, cellContent, cellClass, questionId) {
+    function createRow(columns, cellContent, cellClass, questionId, returnsAnswerAttribute) {
         var row, columnsCount = columns.length, i, classAttribute;
         
         cellClass = (cellClass || '') + ' cell';
@@ -572,6 +655,10 @@
         }
 
         row.setAttribute('data-questionId', questionId);
+        if (returnsAnswerAttribute !== undefined) {
+            row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
+        }
+        
 
         return row;
     }
@@ -590,9 +677,8 @@
             columnValueAttr = column.getAttribute('value');
             dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
 
-
             if (columnValueAttr) {
-                cell.setAttribute(VALUE_ATTRIBUTE, columnValueAttr);
+                cell.setAttribute(ANSWER_ATTRIBUTE, columnValueAttr);
             }
 
             cell.setAttribute('colspan', column.getAttribute('columns') || 1);
@@ -605,7 +691,7 @@
                 }
             }
 
-            if (dynamicAttribute) {
+            if (dynamicAttribute !== null) {
                 //cell.innerText = dynamicAttribute;
                 cell.innerHTML = dynamicAttribute;
             } else { // Insert display text at beginning of innerHTML         
@@ -679,6 +765,11 @@
         }
     };
 
+    function parseAsNumberOrNull(obj) {
+        var res = parseFloat(obj);         
+        return obj - res >= 0 ? res : null; // Used code from jQuery.isNumeric
+    }
+
     // If 'contentHolder' is 'tr' - use 'Node' methods,
     // if 'contentHolder' is array-like - use array methods
     function addFirst(cell, contentHolder) {
@@ -701,9 +792,7 @@
         }
     }
     // #endregion
-
     
-
     function createControlValueTag(columnDisplay, container) {
         var col = document.createElement('control_value');
         col.setAttribute('display', columnDisplay);
@@ -731,6 +820,12 @@
         return Calendar;
     })();
     // #endregion
+
+    var Response = function (id, rValue, rValueInt) {
+        this.questionId = id;
+        this.RValue = rValue;
+        this.RValueInt = rValueInt;
+    }
 
     // #region handlers
     // #endregion
