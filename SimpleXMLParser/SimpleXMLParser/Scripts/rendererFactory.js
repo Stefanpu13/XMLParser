@@ -39,7 +39,7 @@ var XMLRendererFactory = (function () {
         renderers[XMLType] = renderFunc;
     }
 
-    function getXMLRenderer(questionString) {
+    function makeXMLRenderer(questionString) {
         /// <summary>Gets XML renderer based on the type of the XML content </summary>
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
@@ -208,7 +208,7 @@ var XMLRendererFactory = (function () {
 
     return {
         addXMLRenderer: addXMLRenderer,
-        getXMLRenderer: getXMLRenderer,
+        makeXMLRenderer: makeXMLRenderer,
         QuestionerDataStorage: QuestionerDataStorage
     }
 })();
