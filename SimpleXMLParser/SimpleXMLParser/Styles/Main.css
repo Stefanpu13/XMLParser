@@ -44,7 +44,7 @@
 }
 .inner-table {
     width: 100%;
-    text-align:center;
+    text-align:left;
 }
 .inner-table-radio-cell, .inner-table-scale-cell {
     border:none;
