@@ -7,7 +7,8 @@
         DISPLAY_VERTICAL_GROUP = "vertical_group", DISPLAY_TYPE_DROPDOWN = "drop_box",
         DISPLAY_TYPE_DATE = "date", DISPLAY_TYPE_DATADROPDOWN = "data_dropdown",
         DISPLAY_TYPE_CASCADEDROPDOWN = "cascade_dropdown", EXTERNAL_REF = 'ExternalRef',
-        Q_TEXT = 'QText', RETURN_ANSWER = 'data-return-answer', currentIncompleteRow, forEach = Array.prototype.forEach
+        Q_TEXT = 'QText', RETURN_ANSWER = 'data-return-answer', currentIncompleteRow,
+        forEach = Array.prototype.forEach,
         // Custom attribute to be added to the different answer options.
         // #region custom attributes
         ANSWER_ATTRIBUTE = "data-answer-value",
@@ -34,7 +35,7 @@
         }
         textArea.setAttribute('cols', initialTextareaColsCount);
 
-        row = createRow(textArea, undefined, textareaClass, questionId, returnsAnswerAttribute);
+        row = createRow(textArea, undefined, textareaClass, returnsAnswerAttribute);
         row.firstChild.setAttribute('colspan',
             XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
@@ -42,7 +43,9 @@
         restoreAnswer(this.question);
 
         textArea.onchange = function updateAnswer(e) {
-            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionId, textArea.value, null));
+            var response = new Response(questionId, textArea.value, null),
+                responseToString = JSON.stringify(response);
+            row.setAttribute(ANSWER_ATTRIBUTE,responseToString);
         };
 
         function restoreAnswer(question) {
@@ -60,7 +63,8 @@
 
     function labelRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, row, labelSpanTag = 'label_span',colSpanAttribute, colSpan,
-            cellClass = 'label-cell', repeatlastScaleAttribute, repeatlastScale, cell, returnsAnswerAttribute = 'none';
+            cellClass = 'label-cell', repeatlastScaleAttribute, repeatlastScale, cell,
+            returnsAnswerAttribute = 'none';
         
         labelSpanTag = doc.getElementsByTagName(labelSpanTag)[0];
         colSpanAttribute = labelSpanTag.getAttribute('value');      
@@ -71,8 +75,7 @@
             colSpan += XMLRendererFactory.QuestionerDataStorage.dataColumnCount;
         }
 
-        row = document.createElement('tr');
-        row.setAttribute('data-questionId', this.question.ID);
+        row = document.createElement('tr');        
         row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
         insertDynamicContents(doc, row, 'row', cellClass);
         row.firstChild.setAttribute('colspan', colSpan);
@@ -105,7 +108,7 @@
         // for each 'line' tag. 'columnsCount' might differ from 'columns_count_attr'.
         for (; i < linesCount; i++) {
             columns = lines[i].getElementsByTagName('column');
-            row = createRow(columns, undefined, 'scale-cell', this.question.ID, returnsAnswerAttribute);            
+            row = createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);            
             rows.push(row);
         }
 
@@ -153,11 +156,11 @@
                 });
                 table.appendChild(scale);
             });
-            controlValuesRow = createRow(controlValues, cellContent, innerTableRadioCellClass, questionId);
+            controlValuesRow = createRow(controlValues, cellContent, innerTableRadioCellClass);
 
             table.appendChild(controlValuesRow);
             table.className = 'inner-table';
-            row = createRow(table, undefined, innerTableClass, questionId, returnsAnswerAttribute);
+            row = createRow(table, undefined, innerTableClass, returnsAnswerAttribute);
             //Uncomment the following code if you want to use 'dataColumnCount' as in original method.
             // Also put in comment 'width:100%' of '.inner-table'.
             // row.firstChild.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
@@ -171,7 +174,8 @@
             });
 
         } else {
-            row = createRow(controlValues, cellContent, radioCellClass, questionId, returnsAnswerAttribute);
+            row = createRow(controlValues, cellContent,
+                radioCellClass, returnsAnswerAttribute);
             insertDynamicContents(doc, row, dynamicTagName);
 
             forEach.call(row.childNodes, function (node) {
@@ -191,8 +195,11 @@
         }        
 
         function updateAnswer(node, row) {
-            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE);
-            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionId, answerValue, null));
+            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE),
+                response = new Response(questionId, answerValue, null),
+                responseToString = JSON.stringify(response);
+            responseToString = JSON.stringify(response);
+            row.setAttribute(ANSWER_ATTRIBUTE, responseToString);            
         }
         
         return row;
@@ -201,7 +208,7 @@
     function verticalGroupRenderer(XMLDoc) {
         var doc =  XMLDoc || this.XMLDoc, controlValues,
         row, rows = [], firstRow, splitValue, labelClass, cellContent, lines, controlValuesCount, i = 0,
-        columns, questionID = this.question.ID, dynamicTagName = 'row', returnsAnswerAttribute = 'required',
+        columns, questionId = this.question.ID, dynamicTagName = 'row', returnsAnswerAttribute = 'required',
             labelReturnsAnswerAttribute = 'none', currentSelectedRow;
 
         // cellContent is a 'label' tag with <input type=radio>
@@ -215,7 +222,7 @@
                         value: 'radio'
                     }, {
                         name: 'name',
-                        value: 'vertical-radio-' + questionID
+                        value: 'vertical-radio-' + questionId
                     }]
                 }]
             }]
@@ -241,7 +248,8 @@
                 radioCellClass = 'vertical-radio-cell';
             }
 
-            row = createRow(splittedControlValues, cellContent, radioCellClass, questionID, returnsAnswerAttribute);
+            row = createRow(splittedControlValues, cellContent,
+                radioCellClass, returnsAnswerAttribute);
             rows.push(row);
         });
 
@@ -262,28 +270,34 @@
               td = tr.lastChild; // row might have two 'td'`s but the last contains the answer.
             // Answers per row are updated only once. 
             // Then 'RETURN_ANSWER' attribute is used to determine whether answer should be taken or not.
-            updateAnswer(td, tr); 
+            
+            if (radioButton) {
+                updateAnswer(td, tr);
 
-            radioButton.onchange = function () {
-                if (currentSelectedRow) {
-                    currentSelectedRow.setAttribute(RETURN_ANSWER, labelReturnsAnswerAttribute);
-                    tr.setAttribute(RETURN_ANSWER, 'required');
-                    currentSelectedRow = tr;
-                } else {
-                    // 'else' clause is entered only once - the first time a value is selected.
-                    currentSelectedRow = tr;
-                    rows.forEach(function (tr) {
-                        if (tr !== currentSelectedRow) {
-                            tr.setAttribute(RETURN_ANSWER, 'none');
-                        }
-                    })
-                }                
+                radioButton.onchange = function () {
+                    if (currentSelectedRow) {
+                        currentSelectedRow.setAttribute(RETURN_ANSWER, labelReturnsAnswerAttribute);
+                        tr.setAttribute(RETURN_ANSWER, 'required');
+                        currentSelectedRow = tr;
+                    } else {
+                        // 'else' clause is entered only once - the first time a value is selected.
+                        currentSelectedRow = tr;
+                        rows.forEach(function (tr) {
+                            if (tr !== currentSelectedRow) {
+                                tr.setAttribute(RETURN_ANSWER, 'none');
+                            }
+                        })
+                    }
+                }
             }
         });
 
         function updateAnswer(node, row) {
-            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE);
-            row.setAttribute(ANSWER_ATTRIBUTE, new Response(questionID, answerValue, null));
+            var answerValue = node.getAttribute(ANSWER_ATTRIBUTE),
+                response = new Response(questionId, answerValue, null),
+                responseToString = JSON.stringify(response);
+            responseToString = JSON.stringify(response);
+            row.setAttribute(ANSWER_ATTRIBUTE, responseToString);
         }
 
         function restoreAnswer() {
@@ -297,108 +311,168 @@
     function dropDownRenderer(XMLDoc) {
         // 'this' - refers to the rendering object created in 
         // 'addRenderer' method in 'rendererFactory'.
-        var doc = XMLDoc || this.XMLDoc,
-            dropDowns = doc.getElementsByTagName('control_values'),
-            dropDownsCount = dropDowns.length, i = 0, j = 0, controls, controlsCount, columns = [],
-            selectElement, optionElement, row, cellContent, returnsAnswerAttribute = 'required',
-            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue, questionObject = this.question,
-            currentSelectedOption,
+        var doc = XMLDoc || this.XMLDoc, row,
+            cellContent, returnsAnswerAttribute = 'required',
+            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue,
+            questionObject = this.question, questionId = questionObject.ID,
+            selectElements, labelContainer, currentSelectedOption,
             colSpanAdjust = 2; // As used in original dorpDown renderer
 
-        for (; i < dropDownsCount; i += 1) {
-            controls = dropDowns[i].getElementsByTagName('control_value');
-            selectElement = document.createElement('select');
-            controlCount = controls.length;
-
-            for (; j < controlCount; j += 1) {
-                optionElement = createOptionElement(controls[j]);
-                selectElement.add(optionElement);
-            }
-        }
+        selectElements = createSelectElements();
 
         incompleteRowTag = doc.getElementsByTagName('incomplete_row')[0];
         if (incompleteRowTag !== undefined) {
             incompleteRowTagValue = incompleteRowTag.getAttribute('value');
 
-            if (incompleteRowTagValue !== 'end') {                
-                row = createRow(selectElement, undefined, 'select-cell', this.question.ID, returnsAnswerAttribute);
-                row.firstChild.setAttribute('colspan', colSpanAdjust);
-                insertDynamicContents(doc, row, dynamicTagName);
-
-                if (incompleteRowTagValue === 'start') {
-                    currentIncompleteRow = row;
-                }
-            } else {                
-                appendCell(currentIncompleteRow, undefined, selectElement, 'select-cell cell');
-                // The 'select' element is now last child.
-                currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
-                row = currentIncompleteRow; // So 
+            if (incompleteRowTagValue !== 'end') {   // 'true' or 'false'                
+                addFirstSelectElement(colSpanAdjust, questionId);
+             
+            } else {
+                addLastSelectElement(questionId);              
             }
         }
-        else {            
-            row = createRow(selectElement, undefined, 'select-cell', this.question.ID, returnsAnswerAttribute);
-            row.firstChild.setAttribute('colspan',
-                XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
+        else {    
+            addFirstSelectElement(XMLRendererFactory.QuestionerDataStorage.dataColumnCount,
+                questionId);
+        }
+
+        selectElements.forEach(function (e) {
+            e.onchange = updateAnswer;
+        });        
+
+        function addFirstSelectElement(colSpan, questionId) {
+            row = createRow(selectElements, undefined,
+                'select-cell', returnsAnswerAttribute);
+            row.firstChild.setAttribute('colspan', colSpan);
             insertDynamicContents(doc, row, dynamicTagName);
+
+            if (incompleteRowTagValue === 'start') {
+                currentIncompleteRow = row;
+            }
+        }
+
+        function addLastSelectElement() {
+            appendCell(currentIncompleteRow, undefined, selectElements[0], 'select-cell cell');
+            // The 'select' element is now last child.
+            currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
+
+            row = currentIncompleteRow;
+        }
+
+        function createSelectElements() {
+            var dropDowns = doc.getElementsByTagName('control_values'),
+                dropDownsCount = dropDowns.length, i = 0, j = 0, controls, controlsCount,
+                selectContainer = [], selectElement, optionElement;
+
+            for (; i < dropDownsCount; i += 1) {
+                controls = dropDowns[i].getElementsByTagName('control_value');
+                selectElement = document.createElement('select');
+                selectElement.setAttribute('data-questionId', questionId);
+
+                labelContainer = document.createElement('label');
+                controlCount = controls.length;
+
+                for (; j < controlCount; j += 1) {
+                    optionElement = createOptionElement(controls[j]);
+                    selectElement.add(optionElement);
+                }
+
+                if (dropDowns[i].getAttribute('label') !== null) {
+                    // TODO: 'years' and 'months' populating
+                }
+
+                labelContainer.appendChild(selectElement);
+                selectContainer.push(labelContainer);
+            }
+
+            return selectContainer;
         }
 
         function createOptionElement(columnElement) {
-            var optionElement = document.createElement('option');
-            //optionElement.setAttribute(ANSWER_ATTRIBUTE, columnElement.getAttribute('value'));
+            var optionElement = document.createElement('option');            
             optionElement.setAttribute('value', columnElement.getAttribute('value'));
             optionElement.innerHTML = columnElement.getAttribute('display');
 
             return optionElement;
         }
 
-        selectElement.onchange = function (e) {
-            updateAnswer();
-        }
-
-        function updateAnswer() {            
-            var selectedOption = selectElement.options[selectElement.selectedIndex], 
+        function updateAnswer(e) {
+            var selectElement = e.target,
+                selectedOption = selectElement.options[selectElement.selectedIndex],
                 selectedOptionValue = selectedOption.value, innerText = selectedOption.innerText,
-                dataOptionAttribute, dataAnswerAttribute,response, responseObject, currentAnswer;
-            if (incompleteRowTag !== undefined) { // multiple answers per row
+                dataOptionAttribute, dataAnswerAttribute, response,
+                responses, newResponse, newResponseString,
+                newResponsesString, responseObject, currentAnswer;
 
-                if (selectedOptionValue !== '') {
-                    // this should be string that is converted to array
-                    // get current 'data-answer-value' parse 'responseObject'
-                    currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
-                    if (currentAnswer !== null) {
-                        responseObject = JSON.parse(currentAnswer); // will be array of 'response' objects
-                        if (Object.prototype.toString.call(responseObject) === '[object Array]') {
-
-                        }
-                    }                    
-               
+            if (selectedOptionValue !== '') {               
+                currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
+                if (currentAnswer !== null) {
+                    responses = JSON.parse(currentAnswer);
+                    // will be array of 'response' objects
+                    if (containsResponse(responses, questionId)) {
+                        replaceResponse(responses, questionId);
+                    } else {
+                        addNewResponse(questionId);
+                    }
                 } else {
-
+                    responses = [];
+                    addNewResponse(questionId);
                 }
 
+                newResponsesString = JSON.stringify(responses);
+                row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
             } else {
-                if (selectedOptionValue !== '') {                   
-                    response = {
-                        RValue: innerText,
-                        RValueInt:parseAsNumberOrNull(selectedOptionValue)
+                removeResponse(questionId);
+            }
+
+            function containsResponse(responses, questionId) {
+                var contains = responses.some(function (res) {
+                    return res.questionId === questionId;
+                })
+
+                return contains;
+            };
+
+            function replaceResponse(responses, questionId) {
+                responses.forEach(function (res, index) {
+                    if (res.questionId === questionId) {
+                        responses[index] =
+                            new Response(questionId, innerText,
+                            parseAsNumberOrNull(selectedOptionValue));
                     }
-                    row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(response));
+                });
+            };
+
+            function addNewResponse(questionId) {
+                newResponse = new Response(questionId, innerText,
+                    parseAsNumberOrNull(selectedOptionValue));
+                responses.push(newResponse);
+            };
+
+            function removeResponse(questionId) {
+                var currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
+                var responses = JSON.parse(currentAnswer);
+
+                if (responses.length > 1) {
+                    responses.forEach(function (res, index, arr) {
+                        if (res.questionId === questionId) {
+                            arr.splice(index, 1);
+                        }
+                    });
+
+                    newResponsesString = JSON.stringify(responses);
+                    row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
                 } else {
-                    // If attribute is not removed when '--Select one--' option is selected 
-                    // then 'ANSWER_ATTRIBUTE' will be restored to
-                    // '--Select one--' which might not be persieved as answered question
-                    // (depends on what customer says about drop down questions).                    
                     row.removeAttribute(ANSWER_ATTRIBUTE);
                 }
             }
-          
         }
 
         function restoreAnswer() {
             var response = questionObject.Data.Response;
             var rValue = response && response.RValue;
             // TODO: finish implementing response answer
-        }
+        };
 
         return row;
     }
@@ -556,9 +630,7 @@
         };
         // #endregion
 
-        
-
-        row = createRow(form, undefined, '', this.question.ID, returnsAnswerAttribute);
+        row = createRow(form, undefined, '', returnsAnswerAttribute);
         row.firstChild.
             setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
         insertDynamicContents(doc, row, dynamicTagName);
@@ -588,7 +660,7 @@
         function updateAnswer() {
             var date = '';
             date = calendar.year + '/' + calendar.month + '/' + calendar.day;
-            row.setAttribute(ANSWER_ATTRIBUTE,new Response(question.ID, date, null));
+            row.setAttribute(ANSWER_ATTRIBUTE, new Response(question.ID, date, null));
         }
 
         function updateDateSelect(selectedIndex) {
@@ -619,28 +691,27 @@
 
             for (i = 1; i <= daysCount; i++) {
                 option = document.createElement('option');
-                //option.innerText = daysInCurrentMonth + i;
                 option.innerHTML = daysInCurrentMonth + i;
                 daySelect.appendChild(option);
             }
         }
 
         return row;
-    }
+    };
 
     function datadropDownRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc;
         throw new Error("Renderer not implemented.");
-    }
+    };
 
     function cascadedropDownRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc;
         throw new Error("Renderer not implemented.");
-    }
+    };
     //#endregion
 
     // #region helper functions
-    function createRow(columns, cellContent, cellClass, questionId, returnsAnswerAttribute) {
+    function createRow(columns, cellContent, cellClass, returnsAnswerAttribute) {
         var row, columnsCount = columns.length, i, classAttribute;
         
         cellClass = (cellClass || '') + ' cell';
@@ -653,8 +724,7 @@
                 appendCell(row, cellContent, columns[i], cellClass);
             }
         }
-
-        row.setAttribute('data-questionId', questionId);
+       
         if (returnsAnswerAttribute !== undefined) {
             row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
         }
