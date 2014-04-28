@@ -23,3 +23,29 @@
 	"IsRequired": false
 	}
 }
+
+            	{
+"ID": 758909,
+"Data": {
+	"ExternalRef": "1",
+	"QTypeID": 139,
+	"QText": "Select the name of the preceptor you evaluating.",	
+	"DTModified": "",
+	"CreatedBy": null,
+	"ModifiedBy": "",
+	"Active": true,
+	"Code": "PE1",
+	"GroupID": null,
+	"SubGroupID": 42073,
+        "Seq": null,
+	"TypeName": "Object_Type_Preceptor",
+	"SubGroupText": "Preceptor Evaluation ",
+	"Scenario": "",
+	"QuestionerID": 4528,
+        "Response": {"RValue": "2012/4/11", "RValueInt":2},
+	"HasComments": false,
+        "DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"drop_box\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><control_values><control_value value=\"\" display=\"-- Select One --\" /><control_value value=\"1\" display=\"1 - None\" /><control_value value=\"2\" display=\"2\" /><control_value value=\"3\" display=\"3 - Some\" /><control_value value=\"4\" display=\"4\" /><control_value value=\"5\" display=\"5 - A Lot\" /></control_values></eval_question>"
+		,
+	"IsRequired": false
+	}
+}

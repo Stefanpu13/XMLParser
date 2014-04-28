@@ -3,17 +3,12 @@
     height:500px;
     border: 1px solid black;
 }
-.scale-row{
-    margin:20px;
-    width:500px;
-    display:table-row;
-}
+
 .scale-container{
     empty-cells:show;
     display:table;   
 }
-.cell {
-    /*border: 1px solid black;*/
+.cell {  
     min-width:50px;
     width: auto;    
     padding: 5px;

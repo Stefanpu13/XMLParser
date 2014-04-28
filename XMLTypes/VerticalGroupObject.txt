@@ -16,12 +16,42 @@
 		"SubGroupText": "Preceptor Evaluation ",
 		"Scenario": "",
 		"QuestionerID": 4528,
-			"Response": null,
+			"Response": {"RValue":"PT P2 56b", "RValueInt":null},
 		"HasComments": false,
 			"DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"vertical_group\" is_bold=\"true\" label_pattern=\"%%ExternalRef%%- %%QText%%\" bgcolor=\"ccffcc\"><repeat_last_scale value=\"true\" /><label_span value=\"2\" /><control_values><control_value value=\"PT P2 56a\" display=\"a Arrange a meeting with the parents and social worker\" /><control_value value=\"PT P2 56b\" display=\"b Say to the parents, &quot;You might want to consider going home for now because nothing is going on.&quot;\" /><control_value value=\"PT P2 56c\" display=\"c Discuss with the parents their unusual behavior\" /><control_value value=\"PT P2 56d\" display=\"d Encourage the parents to take care of themselves because Mike needs them to be healthy to take care of him\" /></control_values></eval_question>"
 			,
 		"IsRequired": false
 		}
 	}
+	
+	
+{
+	"ID":699,
+	"Data":{
+		"Name":"Education Level (current):",
+		"ExternalRef":"Q1",
+		"QTypeID":14,
+		"QText":"Education Level (current):",
+		"DTCreated":"\/Date(1075113840000)\/",
+		"DTCreatedRaw":"\/Date(1075113840000)\/",
+		"DTModified":"","CreatedBy":null,
+		"ModifiedBy":"",
+		"Active":true,
+		"Code":"Education",
+		"GroupID":125,
+		"SubGroupID":215,
+		"Seq":1,
+		"TypeName":"LABEL",
+		"SubGroupText":"Demographic Fact Sheet",
+		"Scenario":" ","HasComments":false,
+		"QuestionerID":84,
+		"Response":{"RValue":"4", "RValueInt":null},
+		"DisplayDefinition":"  \u003ceval_question \r\n    question_type=\"active\" \r\n    display_type=\"vertical_group\"  \r\n    is_bold=\"true\"  \r\n    label_pattern=\"%%ExternalRef%%- %%QText%%\" \r\n    bgcolor=\"ccffcc\"\u003e\r\n    \r\n    \u003crepeat_last_scale value=\"true\"/\u003e\r\n    \u003clabel_span value=\"2\"/\u003e\r\n  \u003ccontrol_values \u003e\u003ccontrol_value  value=\"1\" display=\"1|Diploma\"/\u003e\u003ccontrol_value  value=\"2\" display=\"2|Associate Degree\"/\u003e\u003ccontrol_value  value=\"3\" display=\"3|Baccalaureate Degree\"/\u003e\u003ccontrol_value  value=\"4\" display=\"4|Master\u0027s Degree\"/\u003e\u003ccontrol_value  value=\"5\" display=\"5|Other\"/\u003e\u003c/control_values\u003e\r\n\u003c/eval_question\u003e",
+		"IsRequired":true
+	}
+
+}
+	
+	
 
 

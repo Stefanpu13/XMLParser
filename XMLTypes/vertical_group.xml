@@ -8,3 +8,15 @@
   <control_value value="PT P2 56d" display="d Encourage the parents to take care of themselves because Mike needs them to be healthy to take care of him" /> 
   </control_values>
   </eval_question>
+  
+  <eval_question question_type="active" display_type="vertical_group" is_bold="true" label_pattern="%%ExternalRef%%- %%QText%%" bgcolor="ccffcc">
+  <repeat_last_scale value="true" /> 
+  <label_span value="2" /> 
+  <control_values>
+  <control_value value="1" display="1|Diploma" /> 
+  <control_value value="2" display="2|Associate Degree" /> 
+  <control_value value="3" display="3|Baccalaureate Degree" /> 
+  <control_value value="4" display="4|Master's Degree" /> 
+  <control_value value="5" display="5|Other" /> 
+  </control_values>
+  </eval_question>

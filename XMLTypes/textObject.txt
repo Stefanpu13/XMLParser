@@ -16,7 +16,7 @@
 		"SubGroupText": "Preceptor Evaluation ",
 		"Scenario": "",
 		"QuestionerID": 4528,
-			"Response": null,
+			"Response": {"RValue":"Some text saved", "RValueInt":null},
 		"HasComments": false,
 			"DisplayDefinition": "<eval_question question_type=\"active\" display_type=\"text\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><repeat_last_scale value=\"false\" /><length value=\"4000\" /></eval_question>"
 			,
