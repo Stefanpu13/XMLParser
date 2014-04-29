@@ -49,3 +49,29 @@
 	"IsRequired": false
 	}
 }
+
+            	{
+"ID": 758909,
+"Data": {
+	"ExternalRef": "1",
+	"QTypeID": 139,
+	"QText": "Select the name of the preceptor you evaluating.",	
+	"DTModified": "",
+	"CreatedBy": null,
+	"ModifiedBy": "",
+	"Active": true,
+	"Code": "PE1",
+	"GroupID": null,
+	"SubGroupID": 42073,
+        "Seq": null,
+	"TypeName": "Object_Type_Preceptor",
+	"SubGroupText": "Preceptor Evaluation ",
+	"Scenario": "",
+	"QuestionerID": 4528,
+        "Response": {"RValue": "36", "RValueInt":3},
+	"HasComments": false,
+        "DisplayDefinition": "  \u003ceval_question\r\n     question_type=\"active\"\r\n     display_type=\"drop_box\"\r\n     is_bold=\"false\" \r\n     label_pattern=\"%%ExternalRef%%|%%QText%%\" \u003e\r\n\r\n    \u003crepeat_last_scale value=\"false\"/\u003e\r\n    \u003cincomplete_row value=\"false\"/\u003e\r\n    \u003ccontrol_values label=\"Years:\"\u003e\r\n      \u003ccontrol_value value=\"0\" display=\"\"/\u003e\r\n      \u003ccontrol_value_range min=\"0\" max=\"50\" /\u003e\r\n    \u003c/control_values\u003e\r\n    \u003ccontrol_values label=\"Months:\"\u003e\r\n      \u003ccontrol_value value=\"0\" display=\"\"/\u003e\r\n      \u003ccontrol_value_range min=\"0\" max=\"11\" /\u003e\r\n    \u003c/control_values\u003e\r\n  \u003c/eval_question\u003e\r\n"
+		,
+	"IsRequired": false
+	}
+}

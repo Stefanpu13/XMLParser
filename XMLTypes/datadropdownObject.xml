@@ -1,0 +1,26 @@
+                    	{
+"ID": 758909,
+"Data": {
+	"ExternalRef": "1",
+	"QTypeID": 139,
+	"QText": "Select the name of the preceptor you evaluating.",	
+	"DTModified": "",
+	"CreatedBy": null,
+	"ModifiedBy": "",
+	"Active": true,
+	"Code": "PE1",
+	"GroupID": null,
+	"SubGroupID": 42073,
+        "Seq": null,
+	"TypeName": "Object_Type_Preceptor",
+	"SubGroupText": "Preceptor Evaluation ",
+	"Scenario": "",
+	"QuestionerID": 4528,
+        "Response": {"questionId":758909,"RValue":"Jason Crain (3 South - Critical Care)","RValueInt":60338},
+	"HasComments": false,
+        "DisplayDefinition":"<eval_question question_type=\"active\" display_type=\"data_dropdown\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><repeat_last_scale value=\"false\" /></eval_question>" 
+		,
+	"IsRequired": false
+	},
+"DynamicData":[{"Key":"60338","Value":"Jason Crain (3 South - Critical Care)"},{"Key":"4084","Value":"Diane Demo Admin (3 South - Critical Care)"},{"Key":"35233","Value":"Dean Mentor (4 North - NICU)"},{"Key":"9299","Value":"Metodi Miltchev (3 North - Med/Surg)"},{"Key":"8933","Value":"Momtchil Penev (3 North - Med/Surg)"},{"Key":"7351","Value":"Test Prececptor (3 North - Med/Surg)"},{"Key":"4070","Value":"Dan Preceptor (3 North - Med/Surg)"},{"Key":"11976","Value":"Darnell Preceptor (6 North - Med/Surg)"},{"Key":"8712","Value":"Dash Preceptor (6 North - Med/Surg)"},{"Key":"8711","Value":"Dave Preceptor (3 South - Critical Care)"},{"Key":"4065","Value":"David Preceptor (3 South - Critical Care)"},{"Key":"52901","Value":"Dawson Preceptor (1 West Peds)"},{"Key":"21338","Value":"Dax Preceptor (6 South - Peds ED)"},{"Key":"4069","Value":"DeeDee Preceptor (3 South - Critical Care)"},{"Key":"4068","Value":"Dennis Preceptor (4 East Critical Care)"},{"Key":"4067","Value":"Devin Preceptor (4 South - OR)"},{"Key":"54055","Value":"Didi Preceptor (4 West - Perinatal)"},{"Key":"4071","Value":"Dolores Preceptor (4 South - OR)"},{"Key":"14000","Value":"Donnie Preceptor (L & D)"},{"Key":"4066","Value":"Dori Preceptor (3 North - Med/Surg)"},{"Key":"4072","Value":"Dulce Preceptor (4 North - NICU)"},{"Key":"58792","Value":"Terry Preceptor (3 West - Critical Care)"},{"Key":"58747","Value":"Darlene Preceptor 20 (4 East Critical Care)"},{"Key":"33773","Value":"Demo Preceptor 5 North (5 North - ED)"},{"Key":"35334","Value":"Derek Resdient 407 (5 North - ED)"},{"Key":"3878","Value":"sheila resident (3 North - Med/Surg)"},{"Key":"30469","Value":"Daphne Resident 311 (3 North - Med/Surg)"},{"Key":"35031","Value":"Dustin Resident 402 (4 South - OR)"},{"Key":"35329","Value":"Debbie Resident 406 (4 North - NICU)"}]	
+}
