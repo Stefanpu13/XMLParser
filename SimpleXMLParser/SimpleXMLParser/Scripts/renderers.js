@@ -273,7 +273,7 @@
             questionObject = this.question, questionId = questionObject.ID,
             yearSelectClass = 'years-select', monthSelectClass = 'months-select',
             selectElements, labelContainer, currentSelectedOption, dropDownLabelAttribute,
-            colSpanAdjust = 2; // As used in original dorpDown renderer
+            monthsYearsObjectAdded = false, colSpanAdjust = 2; // As used in original dorpDown renderer
 
         selectElements = createSelectElements();
 
@@ -337,22 +337,24 @@
                 labelContainer = document.createElement('label');
                 controlCount = controls.length;
 
-                for (; j < controlCount; j += 1) {
-                    optionElement = createOptionElement(controls[j]);
-                    selectElement.add(optionElement);
-                }
 
-                dropDownLabelAttribute = dropDowns[i].getAttribute('label') ;
-                if (isMonthsYearsDropDownType()) {                                     
-                    populateControlValueRange(dropDowns[i], selectElement);                    
+                dropDownLabelAttribute = dropDowns[i].getAttribute('label');
+
+                if (isMonthsYearsDropDownType()) {
+                    populateSelectElementRange(dropDowns[i], selectElement);
                     labelContainer.innerHTML = dropDownLabelAttribute;
+                } else {
+                    for (; j < controlCount; j += 1) {
+                        optionElement = createOptionElement(controls[j]);
+                        selectElement.add(optionElement);
+                    }
                 }
 
                 labelContainer.appendChild(selectElement);
                 selectContainer.push(labelContainer);
             }
 
-            function populateControlValueRange(controlValuesTag, selectElement) {
+            function populateSelectElementRange(controlValuesTag, selectElement) {
                 var controlValueRange =
                     controlValuesTag.getElementsByTagName('control_value_range')[0],
                     min = Number(controlValueRange.getAttribute('min')),
@@ -407,6 +409,32 @@
             // updates ANSWER_ATTRIBUTE in the row by adding or removing responses 
             function updateAnswerAttribute() {
                 if (selectedOptionValue !== '') {
+                    setNonEmptySelectedOptionAnswer();                   
+                } else {
+                    setEmptySelectedOptionAnswer();               
+                }
+
+                // If drop down is "Years: Months" then null value choise of "years" or 'months'
+                // does should not remove the answer if other option is not null
+                function setEmptySelectedOptionAnswer() {
+                    if (isMonthsYearsDropDownType()) {
+                        currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
+                        if (currentAnswer !== null) {
+                            responses = JSON.parse(currentAnswer);
+                            replaceResponse(responses, questionId);
+                            if (responses[0].RValue === 0) {
+                                removeResponse(questionId);
+                            } else {
+                                newResponsesString = JSON.stringify(responses);
+                                row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
+                            }
+                        }
+                    } else {
+                        removeResponse(questionId);
+                    }
+                }
+
+                function setNonEmptySelectedOptionAnswer() {
                     currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
                     if (currentAnswer !== null) {
                         responses = JSON.parse(currentAnswer);
@@ -423,8 +451,6 @@
 
                     newResponsesString = JSON.stringify(responses);
                     row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
-                } else {
-                    removeResponse(questionId);
                 }
             }
 
@@ -439,8 +465,7 @@
             function replaceResponse(responses, questionId) {
                 var responseValue;
                 if (isMonthsYearsDropDownType()) {
-                    responseValue = convertToTotalMonths();
-                    // TODO: implement 'months' years replacement here.
+                    responseValue = convertToTotalMonths();             
                 } else {
                     responseValue = innerText;
                 }
@@ -495,21 +520,25 @@
             return dropDownLabelAttribute !== null;
         }
 
-        function restoreAllAnswers() {
+        function restoreAllAnswers() {            
             row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
         }
 
         function restoreAnswer(selectElement, row) {
             var restoredOption, restoredResponse,
-                response = questionObject.Data.Response, restoredResponse,
+                response = questionObject.Data.Response,
                 rValue = response && response.RValue,
                 rValueInt =response && response.RValueInt, 
                     monthsYearsObject;
-            if (rValue !== null && response !== undefined) {
-                // TODO: finish implementing response answer
+
+            if (rValue !== null && response !== undefined) {                
                 if (isMonthsYearsDropDownType()) { // Months years
-                    // TODO: implement 'months' years restoration here.
-                    monthsYearsObject = convertFromTotalMonths(rValue);
+                    if (monthsYearsObjectAdded === false) {
+                        monthsYearsObject = convertFromTotalMonths(rValue);
+                        restoredResponse = restoreMonthAndDate(selectElement, monthsYearsObject);
+                        monthsYearsObjectAdded = true;
+                        responseArray.push(restoredResponse);
+                    }
 
                 } else {
                     if (rValueInt !== null) {
@@ -529,8 +558,21 @@
                     }
 
                     restoredResponse = new Response(questionObject.ID, restoredOption.innerHTML, rValueInt);
-                    responseArray.push(restoredResponse);
+                    responseArray.push(restoredResponse);                    
                 }
+            }
+
+            function restoreMonthAndDate(selectElement, restoreObject) {
+                var restoredResponse;
+                if (selectElement.className === yearSelectClass) {
+                    selectElement.selectedIndex = restoreObject.years;
+                } else if (selectElement.className === monthSelectClass) {
+                    selectElement.selectedIndex = restoreObject.months;
+                }
+
+                restoredResponse = new Response(questionId, restoreObject.restoreValue, rValueInt);
+
+                return restoredResponse;
             }
         };
 
@@ -551,6 +593,11 @@
             months = totalMonths % 12;
             years = Math.floor((totalMonths / 12));
 
+            return {
+                years: years,
+                months:months,
+                restoreValue:totalMonths
+            }
         }
 
         return row;
@@ -783,8 +830,20 @@
     };
 
     function datadropDownRenderer(XMLDoc) {
-        var doc = XMLDoc || this.XMLDoc;
-        throw new Error("Renderer not implemented.");
+        var doc = XMLDoc || this.XMLDoc, controlValueContainingTag,
+            dynamicData = this.question.DynamicData, emptyOtion;
+
+        controlValueContainingTag = document.createElement('control_values');
+        emptyOtion = createControlValueTag('', '--Select Option--');
+        controlValueContainingTag.appendChild(emptyOtion);
+        
+        dynamicData.forEach(function (keyValuePair) {
+            var controlValueTag = createControlValueTag(keyValuePair.Key, keyValuePair.Value);
+            controlValueContainingTag.appendChild(controlValueTag);
+        })
+
+        doc.firstChild.appendChild(controlValueContainingTag);
+       return dropDownRenderer.call(this, doc);
     };
 
     function cascadedropDownRenderer(XMLDoc) {
@@ -951,7 +1010,10 @@
     
     function createControlValueTag(controlValue, columnDisplay) {
         var col = document.createElement('control_value'),
-            value = controlValue.getAttribute('value');
+            value =
+            (controlValue.getAttribute && controlValue.getAttribute('value')) ||
+            controlValue;
+
         col.setAttribute('display', columnDisplay);
         col.setAttribute('value', value);
         col.setAttribute('colspan', 1);
@@ -1019,6 +1081,7 @@
     // #endregion
 
     // #region rendering objects     
+
     var Calendar = (function () {
 
         var Calendar = function () {
@@ -1036,8 +1099,7 @@
         }
 
         return Calendar;
-    })();
-    // #endregion
+    })();    
 
     var Response = function (id, rValue, rValueInt) {
         this.questionId = id;
@@ -1045,7 +1107,6 @@
         this.RValueInt = rValueInt;
     }
 
-    // #region handlers
     // #endregion
 
     XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_TEXT, textRenderer);
