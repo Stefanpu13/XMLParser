@@ -122,7 +122,8 @@
         for (; i < linesCount; i++) {
             columns = lines[i].getElementsByTagName('column');
             if (columns && columns.length) {
-                row = createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);                
+                row = createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);
+                row.className = this.rowClassName;
                 rows.push(row);
             }
         }
@@ -1025,10 +1026,10 @@
         var radioButtons = node.getElementsByTagName('input'); 
         if (radioButtons.length >= 0) {
             forEach.call(radioButtons, function (radioButton) {
-                radioButton.onchange = function () {
+                radioButton.addEventListener('change', function () {
                     var td = radioButton.parentNode.parentNode; // 'input' is in 'label', which is in 'td'.
                     updateAnswer(td, row, question);
-                }
+                });
             });
         }
     }

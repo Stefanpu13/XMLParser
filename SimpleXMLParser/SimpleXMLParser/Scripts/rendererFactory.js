@@ -1,4 +1,5 @@
-﻿/// <reference path="jquery-2.1.0.min.js" />
+﻿/// <reference path="XMLScaleRendererManager.js" />
+/// <reference path="jquery-2.1.0.min.js" />
 // Gets XML renderer based on the type of the XML content. 
 // Different renderers present different strategies to render XML to html.
 var XMLRendererFactory = (function () {
@@ -16,10 +17,11 @@ var XMLRendererFactory = (function () {
 
     // Constructor function.
     var XMLRenderer = (function () {
-        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc) {
+        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc, rowClassName) {
             this.question = questionObject;
             this.XMLDoc = XMLDoc;
-            this.convertToHTML = XMLRenderingFunc;                        
+            this.convertToHTML = XMLRenderingFunc;
+            this.rowClassName = rowClassName;
         }
         // function is set to prototype and not copied to each object.
         XMLRenderer.prototype.convertToHTML = function () { };        
@@ -43,13 +45,11 @@ var XMLRendererFactory = (function () {
         /// <summary>Gets XML renderer based on the type of the XML content </summary>
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
-        var questionObject;
-        try{
+        var questionObject, xmlRenderer, scaleRowClassName;
+        try {
             questionObject = JSON.parse(questionString);
         } catch (e) { // Invalid JSON. Possible reasons: unescaped characters(quotes)
             console.log(e.message);
-            questionString = escapeQuote(questionString);
-            questionObject = JSON.parse(questionString);
         }
 
         var XMLDoc = parseXML(questionObject),
@@ -59,19 +59,28 @@ var XMLRendererFactory = (function () {
             renderFunc;
 
         renderFunc = renderers[displayType];
-        if (renderFunc !== undefined) {           
-            // Make a copy of the renderer!!!  
-            return new XMLRenderer(questionObject, XMLDoc, renderFunc);
+        // Make a copy of the renderer!!!
+
+        if (XMLScaleRendererManager.isScaleRenderer(displayType)) {
+            scaleRowClassName = 'question-' + questionObject.ID;
+            xmlRenderer =
+                new XMLRenderer(questionObject, XMLDoc, renderFunc, scaleRowClassName);
+
+            if (XMLScaleRendererManager.currentRendererIsScale()) {
+                XMLScaleRendererManager.currentRenderer = xmlRenderer;
+            }
+
         } else {
-            throw new Error('\'XMLType\' is not supported.')
+            xmlRenderer = new XMLRenderer(questionObject, XMLDoc, renderFunc);
         }
+        XMLScaleRendererManager.currentRenderer = xmlRenderer;
+        XMLScaleRendererManager.currentRendererType = displayType;
+        return xmlRenderer;
     }
     
     function parseXML(question) {
         var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition,
         parser = new DOMParser();
-                
-        XMLContent = changeNOBRWithSpan(XMLContent);
 
         XMLDoc = parser.parseFromString(XMLContent, "text/xml");
         if (XMLDoc.getElementsByTagName('parsererror').length > 0) {
@@ -174,36 +183,6 @@ var XMLRendererFactory = (function () {
         }
 
         return text;
-    }
-
-    function changeNOBRWithSpan(content) {
-        // Invalid '<' and '>'
-        // Replace nobr with system of 'class' attr and 'span'
-        if (content.indexOf('nobr') >= 0) {
-            content = replaceSymbol(content, '<nobr>', '&lt;span class=&quot;no-wrap&quot;&gt;');
-        }
-        if (content.indexOf('/nobr') >= 0) {
-            content = replaceSymbol(content, '</nobr>', '&lt;/span&gt;');
-        }
-
-        return content
-    }
-
-    function escapeQuote(text) {
-        var displayAttributeValue = /display=\\"[^(display)].*(".*")\\"/g;
-        var matches = text.match(displayAttributeValue), currentMatch;
-
-        while (currentMatch = displayAttributeValue.exec(text)) {
-            text = text.replace(currentMatch[1],
-                '&quot;' + currentMatch[1].slice(1, -1) + '&quot;');
-        }
-      
-        return text;
-    }
-
-    function escapeOpeningAndClosingTag(content) {
-        var length = content.length;
-        // TODO: Replace unescaped '<' with '&lt;' and unescaped '>' with '&gt;' 
     }
 
     return {

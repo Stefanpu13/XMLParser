@@ -65,6 +65,7 @@
     <Content Include="Scripts\Main.js" />
     <Content Include="Scripts\rendererFactory.js" />
     <Content Include="Scripts\renderers.js" />
+    <Content Include="Scripts\XMLScaleRendererManager.js" />
     <Content Include="Styles\Main.css" />
     <Content Include="Web.config" />
     <Content Include="Scripts\jquery-2.1.0.min.map" />
