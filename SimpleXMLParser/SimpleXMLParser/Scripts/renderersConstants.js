@@ -15,7 +15,8 @@ renderersCommon.constants = {
     // Custom attribute to be added to the different answer options.
     // #region custom attributes
     ANSWER_ATTRIBUTE : "data-answer-value",
-    COLUMNS_COUNT_ATTTRIBUTE : 'data-columns-count',
+    COLUMNS_COUNT_ATTTRIBUTE: 'data-columns-count',
+    DYNAMIC_SELECT_CLASS_NAME: 'dynamic-select',
     // #endregion        
     forEach: Array.prototype.forEach  
 };
