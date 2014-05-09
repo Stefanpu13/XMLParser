@@ -1,26 +1,22 @@
-﻿/// <reference path="rendererFactory.js" />
+﻿/// <reference path="functions.js" />
+/// <reference path="DropdownHttpClient.js" />
+/// <reference path="debugHelper.js" />
+/// <reference path="rendererFactory.js" />
+/// <reference path="renderersCommonFunctions.js" />
+/// <reference path="constants.js" />
 /// <reference path="jquery-2.1.0.min.js" />
-/// <reference path="jquery-2.1.0.min.js" />
+/// <reference path="RenderersCommonObjects.js" />
 (function initializeRenderers() {
-    var DISPLAY_TYPE_SCALE = "scale", DISPLAY_TYPE_LABEL = "label",
-        DISPLAY_TYPE_TEXT = "text", DISPLAY_TYPE_RADIO = "radio_group",
-        DISPLAY_VERTICAL_GROUP = "vertical_group", DISPLAY_TYPE_DROPDOWN = "drop_box",
-        DISPLAY_TYPE_DATE = "date", DISPLAY_TYPE_DATADROPDOWN = "data_dropdown",
-        DISPLAY_TYPE_CASCADEDROPDOWN = "cascade_dropdown", EXTERNAL_REF = 'ExternalRef',
-        Q_TEXT = 'QText', RETURN_ANSWER = 'data-return-answer', HAS_MULTIPLE_ANSWERS = 'data-has-multiple-answers',
-        currentIncompleteRow, forEach = Array.prototype.forEach,
-        // Custom attribute to be added to the different answer options.
-        // #region custom attributes
-        ANSWER_ATTRIBUTE = "data-answer-value",
-        COLUMNS_COUNT_ATTTRIBUTE = 'data-columns-count';
-    // #endregion
+    var currentIncompleteRow,
+        functions = renderersCommon.functions,
+        objects = renderersCommon.objects,
+        constants = renderersCommon.constants;
 
     //#region renderers    
     function textRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, row, dynamicTagName = 'column', textArea,
             textareaClass = 'teaxarea-cell', lengthTag, textAreaMaxLength,
             initialTextareaColsCount = 50, returnsAnswerAttribute = 'not required',
-            hasMultipleAnswersAttribute = 'false',
             // As is in original method. Don`t know why this value is chosen.
             initialTextareaRowsCount = 5, questionId = this.question.ID; 
 
@@ -36,23 +32,23 @@
         }
         textArea.setAttribute('cols', initialTextareaColsCount);
 
-        row = createRow(textArea, undefined, textareaClass, returnsAnswerAttribute, hasMultipleAnswersAttribute);
+        row = functions.createRow(textArea, undefined, textareaClass, returnsAnswerAttribute);
         row.firstChild.setAttribute('colspan',
             XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
-        insertDynamicContents(doc, row, dynamicTagName);
+        functions.insertDynamicContents(doc, row, dynamicTagName);
 
         restoreAnswer(this.question);
 
         textArea.onchange = function updateAnswer() {
             var text = textArea.value, response, responseArray;
             if (text === '') {
-                row.removeAttribute(ANSWER_ATTRIBUTE);
+                row.removeAttribute(constants.ANSWER_ATTRIBUTE);
             } else {
-                response = new Response(questionId, text, null);
+                response = new objects.Response(questionId, text, null);
                 responseArray = [];
 
                 responseArray.push(response);
-                row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
+                row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
             }
         };
 
@@ -62,11 +58,11 @@
             if (response !== null) {
                 restoredArray = [];
                 rValue = response.RValue;
-                restoredResponse = new Response(Number(question.ID), rValue, null);
+                restoredResponse = new objects.Response(Number(question.ID), rValue, null);
                 
                 textArea.value = rValue;
                 restoredArray.push(restoredResponse);
-                row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(restoredArray));
+                row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(restoredArray));
             }
         }
                 
@@ -88,8 +84,8 @@
         }
 
         row = document.createElement('tr');        
-        row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
-        insertDynamicContents(doc, row, 'row', cellClass);
+        row.setAttribute(constants.RETURN_ANSWER, returnsAnswerAttribute);
+        functions.insertDynamicContents(doc, row, 'row', cellClass);
         row.firstChild.setAttribute('colspan', colSpan);
 
         repeatlastScaleAttribute = doc.getElementsByTagName('repeat_last_scale')[0];
@@ -122,7 +118,7 @@
         for (; i < linesCount; i++) {
             columns = lines[i].getElementsByTagName('column');
             if (columns && columns.length) {
-                row = createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);
+                row = functions.createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);
                 row.className = this.rowClassName;
                 rows.push(row);
             }
@@ -136,7 +132,7 @@
         row, cellContent, lines, i = 0, answers, innerTableRadioCellClass,
         innerTableClass, labelPatternClass = 'label-cell', columns, question = this.question,
         dynamicTagName = 'column', innerTable, scales, innerTableLabelClass = undefined,
-        returnsAnswerAttribute = 'required', hasMultipleAnswersAttribute = 'false';
+        returnsAnswerAttribute = 'required';
 
         controlValues = doc.getElementsByTagName('control_value');
         lines = doc.getElementsByTagName('line');
@@ -169,25 +165,25 @@
             radioCellClass = 'radio-cell';
         }
 
-        row = createRow(innerTable || controlValues,
+        row = functions.createRow(innerTable || controlValues,
             cellContent, innerTableClass || radioCellClass,
-            returnsAnswerAttribute, hasMultipleAnswersAttribute);
+            returnsAnswerAttribute);
 
-        insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
+        functions.insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
 
-        attachRowFunctionality(row, innerTable, question);
+        functions.attachRowFunctionality(row, innerTable, question);
 
         function populateInnerTable(table) {
             dynamicTagName = 'row';
             scales = scaleRenderer.call(this, doc);
 
             scales.forEach(function (scale) {
-                forEach.call(scale.children, function (scaleCell) {
+                constants.forEach.call(scale.children, function (scaleCell) {
                     scaleCell.className = 'inner-table-scale-cell cell';
                 });
                 table.appendChild(scale);
             });
-            controlValuesRow = createRow(controlValues, cellContent, innerTableRadioCellClass);
+            controlValuesRow = functions.createRow(controlValues, cellContent, innerTableRadioCellClass);
 
             table.appendChild(controlValuesRow);
             table.className = 'inner-table';
@@ -207,7 +203,7 @@
         row, cellContent, lines, controlValuesCount, i = 0, radioCellClass = 'vertical-radio-cell',
         columns, question = this.question, dynamicTagName = 'row', splitValue = false,
         innerTableLabelClass = 'vertical-radio-label', innerTable, returnsAnswerAttribute = 'required',
-        hasMultipleAnswersAttribute = 'false', answers;
+        answers;
 
         // cellContent is a 'label' tag with <input type=radio>
         cellContent = {
@@ -233,7 +229,7 @@
             innerTable = document.createElement('table');
         }
 
-        forEach.call(controlValues, function addControlValuesRow(controlValue) {
+        constants.forEach.call(controlValues, function addControlValuesRow(controlValue) {
             var radioCellClass, splitResult, splittedControlValues,
                 controlValueTag;
             // First part of split to be converted into text, second part - into radio button.
@@ -247,359 +243,19 @@
                 splitResult = controlValue.getAttribute('display').split('|');
                 splittedControlValues = [];
                 splittedControlValues.push(splitResult[0]);
-                controlValueTag = createControlValueTag(controlValue, splitResult[1]);
+                controlValueTag = functions.createControlValueTag(controlValue, splitResult[1]);
                 splittedControlValues.push(controlValueTag);
 
-                innerTableRow = createRow(splittedControlValues, cellContent, radioCellClass);                
+                innerTableRow = functions.createRow(splittedControlValues, cellContent, radioCellClass);                
                 table.appendChild(innerTableRow);
             }
         });
 
-        row = createRow(innerTable || controlValues, cellContent, radioCellClass,
-            returnsAnswerAttribute, hasMultipleAnswersAttribute);
-        insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
+        row = functions.createRow(innerTable || controlValues, cellContent, radioCellClass,
+            returnsAnswerAttribute);
+        functions.insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
 
-        attachRowFunctionality(row, innerTable, question);
-
-        return row;
-    }
-
-    function dropDownRenderer(XMLDoc) {
-        // 'this' - refers to the rendering object created in 
-        // 'addRenderer' method in 'rendererFactory'.
-        var doc = XMLDoc || this.XMLDoc, row,
-            cellContent, returnsAnswerAttribute = 'required',
-            hasMultipleAnswersAttribute = 'false', responseArray = [],
-            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue,
-            questionObject = this.question, questionId = questionObject.ID,
-            yearSelectClass = 'years-select', monthSelectClass = 'months-select',
-            selectElements, labelContainer, currentSelectedOption, dropDownLabelAttribute,
-            monthsYearsObjectAdded = false, colSpanAdjust = 2; // As used in original dorpDown renderer
-
-        selectElements = createSelectElements();
-
-        incompleteRowTag = doc.getElementsByTagName('incomplete_row')[0];
-        if (incompleteRowTag !== undefined) {
-            incompleteRowTagValue = incompleteRowTag.getAttribute('value');
-
-            if (incompleteRowTagValue !== 'end') {   // 'true' or 'false'                
-                addFirstSelectElement(colSpanAdjust, questionId);
-             
-            } else {
-                addLastSelectElement(questionId);              
-            }
-        }
-        else {    
-            addFirstSelectElement(XMLRendererFactory.QuestionerDataStorage.dataColumnCount,
-                questionId);
-        }
-
-        selectElements.forEach(function (label) {
-            var selectElem = label.lastChild;
-
-            restoreAnswer(selectElem, row);            
-            selectElem.onchange = updateAnswer;
-        });
-
-        restoreAllAnswers();
-
-        function addFirstSelectElement(colSpan, questionId) {
-            var hasMultipleAnswersAttribute = 'false';
-            row = createRow(selectElements, undefined,
-                'select-cell', returnsAnswerAttribute, hasMultipleAnswersAttribute);
-            row.firstChild.setAttribute('colspan', colSpan);
-            insertDynamicContents(doc, row, dynamicTagName);
-
-            if (incompleteRowTagValue === 'start') {
-                hasMultipleAnswersAttribute = 'true';
-                row.setAttribute(HAS_MULTIPLE_ANSWERS, hasMultipleAnswersAttribute);
-                currentIncompleteRow = row;
-            }
-        }
-
-        function addLastSelectElement() {
-            appendCell(currentIncompleteRow, undefined, selectElements[0], 'select-cell cell');
-            // The 'select' element is now last child.
-            currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
-
-            row = currentIncompleteRow;
-        }
-
-        function createSelectElements() {
-            var dropDowns = doc.getElementsByTagName('control_values'),
-                dropDownsCount = dropDowns.length, i = 0, j = 0, controls, controlsCount,
-                selectContainer = [], selectElement, optionElement;
-
-            for (; i < dropDownsCount; i += 1) {
-                controls = dropDowns[i].getElementsByTagName('control_value');
-                selectElement = document.createElement('select');
-                selectElement.setAttribute('data-questionId', questionId);
-
-                labelContainer = document.createElement('label');
-                controlCount = controls.length;
-
-
-                dropDownLabelAttribute = dropDowns[i].getAttribute('label');
-
-                if (isMonthsYearsDropDownType()) {
-                    populateSelectElementRange(dropDowns[i], selectElement);
-                    labelContainer.innerHTML = dropDownLabelAttribute;
-                } else {
-                    for (; j < controlCount; j += 1) {
-                        optionElement = createOptionElement(controls[j]);
-                        selectElement.add(optionElement);
-                    }
-                }
-
-                labelContainer.appendChild(selectElement);
-                selectContainer.push(labelContainer);
-            }
-
-            function populateSelectElementRange(controlValuesTag, selectElement) {
-                var controlValueRange =
-                    controlValuesTag.getElementsByTagName('control_value_range')[0],
-                    min = Number(controlValueRange.getAttribute('min')),
-                    max = controlValueRange.getAttribute('max'),
-                    step = Number(controlValueRange.getAttribute('step') || 1),
-                    optionElement,                 
-                    selectElementClass = dropDownLabelAttribute.indexOf('Year') >= 0 ?
-                    yearSelectClass : monthSelectClass;
-
-                max =
-                    max === 'CURRENT_YEAR' ? new Date().getFullYear : Number(max);
-
-                if (step > 0) {
-                    for (var i = min; i <= max; i+=step) {
-                        optionElement = createOptionElement(undefined, i, i);
-                        selectElement.appendChild(optionElement);
-                    }
-                } else {
-                    for (var i = max; i <= min; i += step) {
-                        optionElement = createOptionElement(undefined, i, i);
-                        selectElement.appendChild(optionElement);
-                    }
-                }
-
-                selectElement.className = selectElementClass;
-            }
-
-            return selectContainer;
-        }
-
-        function createOptionElement(columnElement, elemValue, elemInnerHTML) {
-            var value = (columnElement && columnElement.getAttribute('value')) || elemValue || "",
-                innerHTML = (columnElement && columnElement.getAttribute('display')) || elemInnerHTML || "";
-
-            var optionElement = document.createElement('option');            
-            optionElement.setAttribute('value', value);
-            optionElement.innerHTML = innerHTML;
-
-            return optionElement;
-        }
-
-        function updateAnswer(e) {
-            var selectElement = e.target,
-                selectedOption = selectElement.options[selectElement.selectedIndex],
-                selectedOptionValue = selectedOption.value, innerText = selectedOption.innerText,
-                dataOptionAttribute, dataAnswerAttribute, response,
-                responses, newResponseString, monthSelectedOptionValue, yearSelectedOptionValue,
-                newResponsesString, responseObject, currentAnswer;
-
-            updateAnswerAttribute();
-
-            // updates ANSWER_ATTRIBUTE in the row by adding or removing responses 
-            function updateAnswerAttribute() {
-                if (selectedOptionValue !== '') {
-                    setNonEmptySelectedOptionAnswer();                   
-                } else {
-                    setEmptySelectedOptionAnswer();               
-                }
-
-                // If drop down is "Years: Months" then null value choise of "years" or 'months'
-                // does should not remove the answer if other option is not null
-                function setEmptySelectedOptionAnswer() {
-                    if (isMonthsYearsDropDownType()) {
-                        currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
-                        if (currentAnswer !== null) {
-                            responses = JSON.parse(currentAnswer);
-                            replaceResponse(responses, questionId);
-                            if (responses[0].RValue === 0) {
-                                removeResponse(questionId);
-                            } else {
-                                newResponsesString = JSON.stringify(responses);
-                                row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
-                            }
-                        }
-                    } else {
-                        removeResponse(questionId);
-                    }
-                }
-
-                function setNonEmptySelectedOptionAnswer() {
-                    currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
-                    if (currentAnswer !== null) {
-                        responses = JSON.parse(currentAnswer);
-                        // will be array of 'response' objects
-                        if (containsResponse(responses, questionId)) {
-                            replaceResponse(responses, questionId);
-                        } else {
-                            addNewResponse(questionId);
-                        }
-                    } else {
-                        responses = [];
-                        addNewResponse(questionId);
-                    }
-
-                    newResponsesString = JSON.stringify(responses);
-                    row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
-                }
-            }
-
-            function containsResponse(responses, questionId) {
-                var contains = responses.some(function (res) {
-                    return res.questionId === questionId;
-                })
-
-                return contains;
-            };
-
-            function replaceResponse(responses, questionId) {
-                var responseValue;
-                if (isMonthsYearsDropDownType()) {
-                    responseValue = convertToTotalMonths();             
-                } else {
-                    responseValue = innerText;
-                }
-
-                responses.forEach(function (res, index) {
-                    if (res.questionId === questionId) {
-                        responses[index] =
-                            new Response(questionId, responseValue,
-                            parseAsNumberOrNull(selectedOptionValue));
-                    }
-                });
-            };
-
-            function addNewResponse(questionId) {
-                var newResponse, responseValue, totalMonths;
-
-                if (isMonthsYearsDropDownType()) {                   
-                    responseValue = convertToTotalMonths();
-
-                } else {
-                    responseValue = innerText;                    
-                }
-
-                newResponse = new Response(questionId, responseValue,
-                    parseAsNumberOrNull(selectedOptionValue));
-                responses.push(newResponse);
-            };
-
-            function removeResponse(questionId) {
-                var currentAnswer = row.getAttribute(ANSWER_ATTRIBUTE);
-                var responses = JSON.parse(currentAnswer);
-
-                if (responses.length > 1) {
-                    responses.forEach(function (res, index, arr) {
-                        if (res.questionId === questionId) {
-                            arr.splice(index, 1);
-                        }
-                    });
-
-                    newResponsesString = JSON.stringify(responses);
-                    row.setAttribute(ANSWER_ATTRIBUTE, newResponsesString);
-                } else {
-                    row.removeAttribute(ANSWER_ATTRIBUTE);
-                }
-            }
-        }
-
-        // A special type of drop down menu -
-        // two menus that correspond to single question and row.
-        // See questionary 4993.
-        function isMonthsYearsDropDownType() {
-            return dropDownLabelAttribute !== null;
-        }
-
-        function restoreAllAnswers() {            
-            row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
-        }
-
-        function restoreAnswer(selectElement, row) {
-            var restoredOption, restoredResponse,
-                response = questionObject.Data.Response,
-                rValue = response && response.RValue,
-                rValueInt =response && response.RValueInt, 
-                    monthsYearsObject;
-
-            if (rValue !== null && response !== undefined) {                
-                if (isMonthsYearsDropDownType()) { // Months years
-                    if (monthsYearsObjectAdded === false) {
-                        monthsYearsObject = convertFromTotalMonths(rValue);
-                        restoredResponse = restoreMonthAndDate(selectElement, monthsYearsObject);
-                        monthsYearsObjectAdded = true;
-                        responseArray.push(restoredResponse);
-                    }
-
-                } else {
-                    if (rValueInt !== null) {
-                        forEach.call(selectElement.childNodes, function (optionElement, index) {
-                            if (optionElement.getAttribute('value') == rValueInt) { // Compare string to int or int to int
-                                selectElement.selectedIndex = index;
-                                restoredOption = optionElement;
-                            }
-                        });
-                    } else {
-                        forEach.call(selectElement.childNodes, function (optionElement, index) {
-                            if (optionElement.innerHTML === rValue) {
-                                selectElement.selectedIndex = index;
-                                restoredOption = optionElement;
-                            }
-                        });
-                    }
-
-                    restoredResponse = new Response(questionObject.ID, restoredOption.innerHTML, rValueInt);
-                    responseArray.push(restoredResponse);                    
-                }
-            }
-
-            function restoreMonthAndDate(selectElement, restoreObject) {
-                var restoredResponse;
-                if (selectElement.className === yearSelectClass) {
-                    selectElement.selectedIndex = restoreObject.years;
-                } else if (selectElement.className === monthSelectClass) {
-                    selectElement.selectedIndex = restoreObject.months;
-                }
-
-                restoredResponse = new Response(questionId, restoreObject.restoreValue, rValueInt);
-
-                return restoredResponse;
-            }
-        };
-
-        function convertToTotalMonths() {
-            var result;
-            month =
-                     Number(row.getElementsByClassName(monthSelectClass)[0].value);
-            year =
-               Number(row.getElementsByClassName(yearSelectClass)[0].value);
-            result = month + year * 12;
-            return result;
-        }
-
-        function convertFromTotalMonths(rValue) {
-            var months, years, totalMonths;
-
-            totalMonths = Number(rValue);
-            months = totalMonths % 12;
-            years = Math.floor((totalMonths / 12));
-
-            return {
-                years: years,
-                months:months,
-                restoreValue:totalMonths
-            }
-        }
+        functions.attachRowFunctionality(row, innerTable, question);
 
         return row;
     }
@@ -607,9 +263,8 @@
     function dateRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc, question = this.question, dynamicTagName = 'column',
             response = question.Data.Response, row,
-            calendar = new Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
-            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year', returnsAnswerAttribute = 'required',
-                hasMultipleAnswersAttribute = 'false';
+            calendar = new objects.Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
+            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year', returnsAnswerAttribute = 'required';
         // #region calendar HTML elements.
         form = document.createElement('form'),
         daySelect = document.createElement('select'),
@@ -758,10 +413,10 @@
         };
         // #endregion
 
-        row = createRow(form, undefined, '', returnsAnswerAttribute, hasMultipleAnswersAttribute);
+        row = functions.createRow(form, undefined, '', returnsAnswerAttribute);
         row.firstChild.
             setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
-        insertDynamicContents(doc, row, dynamicTagName);
+        functions.insertDynamicContents(doc, row, dynamicTagName);
 
         // If question has 'Response'  and 'Response.RValue'
         if (response!== null) {
@@ -790,8 +445,8 @@
             var responseArray = [];
             var date = '';
             date = calendar.year + '/' + calendar.month + '/' + calendar.day;
-            responseArray.push(new Response(question.ID, date, null));
-            row.setAttribute(ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
+            responseArray.push(new objects.Response(question.ID, date, null));
+            row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(responseArray));
         }
 
         function updateDateSelect(selectedIndex) {
@@ -830,294 +485,388 @@
         return row;
     };
 
-    function datadropDownRenderer(XMLDoc) {
-        var doc = XMLDoc || this.XMLDoc, controlValueContainingTag,
-            dynamicData = this.question.DynamicData, emptyOtion;
+    function dropDownRenderer(XMLDoc) {
+        // 'this' - refers to the rendering object created in 
+        // 'addRenderer' method in 'rendererFactory'.
+        var doc = XMLDoc || this.XMLDoc, row,
+            cellContent, returnsAnswerAttribute = 'required',
+            responseArray = [],
+            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue,
+            questionObject = this.question, questionId = questionObject.ID,
+            yearSelectClass = 'years-select', monthSelectClass = 'months-select',
+            selectElements, currentSelectedOption,
+            dropDownLabelAttribute,
+            createSelectElementsResult,
+            colSpanAdjust = 2; // As used in original dorpDown renderer
 
-        controlValueContainingTag = document.createElement('control_values');
-        emptyOtion = createControlValueTag('', '--Select Option--');
-        controlValueContainingTag.appendChild(emptyOtion);
+        createSelectElementsResult =
+            createSelectElements(doc, yearSelectClass, monthSelectClass);
+
+        selectElements = createSelectElementsResult.selectContainer;
+        dropDownLabelAttribute = createSelectElementsResult.dropDownLabelAttribute;
+
+        incompleteRowTag = doc.getElementsByTagName('incomplete_row')[0];
+        if (incompleteRowTag !== undefined) {
+            incompleteRowTagValue = incompleteRowTag.getAttribute('value');
+
+            if (incompleteRowTagValue !== 'end') {   // 'true' or 'false'                
+                addFirstSelectElement(colSpanAdjust, questionId);
+
+            } else {
+                addLastSelectElement(questionId);
+            }
+        }
+        else {
+            addFirstSelectElement(XMLRendererFactory.QuestionerDataStorage.dataColumnCount,
+                questionId);
+        }
+
+        restoreAllAnswers(selectElements);
+
+        attachChangeEventHandlers(selectElements);
+
+        function addFirstSelectElement(colSpan, questionId) {            
+            row = functions.createRow(selectElements, undefined,
+                'select-cell', returnsAnswerAttribute);
+            row.firstChild.setAttribute('colspan', colSpan);
+            functions.insertDynamicContents(doc, row, dynamicTagName);
+
+            if (incompleteRowTagValue === 'start') { 
+                currentIncompleteRow = row;
+            }
+        }
+
+        function addLastSelectElement() {
+            functions.appendCell(currentIncompleteRow, undefined, selectElements[0], 'select-cell cell');
+            // The 'select' element is now last child.
+            currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
+
+            row = currentIncompleteRow;
+        }
+
+        function createSelectElements(doc, yearSelectClass, monthSelectClass) {
+            var dropDowns = doc.getElementsByTagName('control_values'),
+                dropDownsCount = dropDowns.length,
+                i = 0,
+                selectContainer = [],
+                createSelectElementResult,
+                labelContainer,
+                dropDownLabelAttribute;
+
+            for (; i < dropDownsCount; i += 1) {
+                createSelectElementResult = functions.createSelectElement(dropDowns[i], questionId,
+                     yearSelectClass, monthSelectClass);
+                labelContainer = createSelectElementResult.labelContainer;
+                dropDownLabelAttribute = createSelectElementResult.dropDownLabelAttribute;
+                selectContainer.push(labelContainer);
+            }
+
+            return {
+                selectContainer: selectContainer,
+                dropDownLabelAttribute: dropDownLabelAttribute
+            };
+        }
+
+        function attachChangeEventHandlers(selectElements) {
+            selectElements.forEach(function (label) {
+                var selectElem = label.lastChild;
+
+                selectElem.addEventListener('change', function (e) {
+                    updateDropDownAnswer(e, row, questionId);
+                });
+            });
+        }
         
-        dynamicData.forEach(function (keyValuePair) {
-            var controlValueTag = createControlValueTag(keyValuePair.Key, keyValuePair.Value);
-            controlValueContainingTag.appendChild(controlValueTag);
-        })
+        function restoreAllAnswers(selectElements) {
+            selectElements.forEach(function (label) {
+                var selectElem = label.lastChild;
+
+                restoreAnswer(selectElem, row, dropDownLabelAttribute);              
+            });            
+
+            // Variant for two dropdowns on same row - questioner 3371
+            var answerArray = JSON.parse(row.getAttribute(constants.ANSWER_ATTRIBUTE)) || [];
+            answerArray.push.apply(answerArray, responseArray);
+            row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(answerArray));
+        }
+
+        function updateDropDownAnswer(e) {
+            var selectElement = e.target,
+                selectedOption = selectElement.options[selectElement.selectedIndex],
+                selectedOptionValue = selectedOption.value,
+                selectedOptionInnerText = selectedOption.innerText,
+                dataOptionAttribute, dataAnswerAttribute,
+                monthSelectedOptionValue, yearSelectedOptionValue,
+                responseObject;
+
+            updateAnswerAttribute(selectedOptionValue, selectedOptionInnerText);
+        }
+
+        // updates constants.ANSWER_ATTRIBUTE in the row by adding or removing responses 
+        function updateAnswerAttribute(selectedOptionValue, selectedOptionInnerText) {
+
+            if (selectedOptionValue !== '') {
+                setNonEmptySelectedOptionAnswer(selectedOptionValue, selectedOptionInnerText);
+            } else {
+                setEmptySelectedOptionAnswer(selectedOptionValue, selectedOptionInnerText);
+            }
+
+            // If drop down is "Years: Months" then null value choise of "years" or 'months'
+            // does should not remove the answer if other option is not null
+            function setEmptySelectedOptionAnswer(selectedOptionValue, selectedOptionInnerText) {
+                var currentAnswer,
+                    newResponsesString,
+                    responses = [];
+                if (functions.isMonthsYearsDropDownType(dropDownLabelAttribute)) {
+                    currentAnswer = row.getAttribute(constants.ANSWER_ATTRIBUTE);
+                    if (currentAnswer !== null) {
+                        responses = JSON.parse(currentAnswer);
+                        replaceResponse(responses, selectedOptionValue,selectedOptionInnerText, questionId);
+                        if (responses[0].RValue === 0) {
+                           responses = removeResponse(questionId);
+                        } else {
+                            newResponsesString = JSON.stringify(responses);
+                            row.setAttribute(constants.ANSWER_ATTRIBUTE, newResponsesString);
+                        }
+                    }
+                } else {
+                   responses = removeResponse(questionId);
+                }
+            }
+
+            function setNonEmptySelectedOptionAnswer(selectedOptionValue, selectedOptionInnerText) {
+                var currentAnswer = row.getAttribute(constants.ANSWER_ATTRIBUTE),
+                    responses,
+                    newResponsesString;
+                if (currentAnswer !== null) {
+                    responses = JSON.parse(currentAnswer);
+                    // will be array of 'response' objects
+                    if (containsResponse(responses, questionId)) {
+                        replaceResponse(responses, selectedOptionValue,selectedOptionInnerText, questionId);
+                    } else {
+                        addNewResponse(responses, selectedOptionValue, selectedOptionInnerText, questionId);
+                    }
+                } else {
+                    responses = [];
+                    addNewResponse(responses, selectedOptionValue, selectedOptionInnerText, questionId);
+                }
+
+                newResponsesString = JSON.stringify(responses);
+                row.setAttribute(constants.ANSWER_ATTRIBUTE, newResponsesString);
+            }
+        }
+
+        function containsResponse(responses, questionId) {
+            var contains = responses.some(function (res) {
+                return res.questionId === questionId;
+            })
+
+            return contains;
+        };
+
+        function replaceResponse(responses, selectedOptionValue, selectedOptionInnerText, questionId) {
+            var responseValue;
+            if (functions.isMonthsYearsDropDownType(dropDownLabelAttribute)) {
+                responseValue = convertToMonthsValue();
+            } else {
+                responseValue = selectedOptionInnerText;
+            }
+
+            responses.forEach(function (res, index) {
+                if (res.questionId === questionId) {
+                    responses[index] =
+                        new objects.Response(questionId, responseValue,
+                        selectedOptionValue);
+                }
+            });
+        };
+
+        function addNewResponse(responses, selectedOptionValue, selectedOptionInnerText, questionId) {
+            var newResponse, responseValue;
+
+            if (functions.isMonthsYearsDropDownType(dropDownLabelAttribute)) {
+                responseValue = convertToMonthsValue();
+
+            } else {
+                responseValue = selectedOptionInnerText;
+            }
+
+            newResponse = new objects.Response(questionId, responseValue,
+                selectedOptionValue);
+            responses.push(newResponse);
+        };
+
+        function removeResponse(questionId) {
+            var newResponsesString,
+                currentAnswer = row.getAttribute(constants.ANSWER_ATTRIBUTE),
+                responses = JSON.parse(currentAnswer);
+
+            if (responses.length > 1) {
+                responses.forEach(function (res, index, arr) {
+                    if (res.questionId === questionId) {
+                        arr.splice(index, 1);
+                    }
+                });
+
+                newResponsesString = JSON.stringify(responses);
+                row.setAttribute(constants.ANSWER_ATTRIBUTE, newResponsesString);
+            } else {
+                row.removeAttribute(constants.ANSWER_ATTRIBUTE);
+            }
+
+            return responses;
+        }
+
+        function restoreAnswer(selectElement, row) {
+            var restoredOption, restoredResponse,
+                response = questionObject.Data.Response,
+                rValue = response && response.RValue,
+                rValueInt = response && response.RValueInt,
+                    monthsYearsObject;
+
+            if (rValue !== null && response !== undefined) {
+                if (functions.isMonthsYearsDropDownType(dropDownLabelAttribute)) { // Months years                   
+                    monthsYearsObject = convertFromMonthsValue(rValue);
+                    restoredResponse = restoreMonthAndDate(selectElement, monthsYearsObject);
+                    if (restoredResponse !== undefined) {
+                        responseArray.push(restoredResponse);
+                    }
+                } else {
+                    if (rValueInt !== null) {
+                        constants.forEach.call(selectElement.childNodes, function (optionElement, index) {
+                            if (optionElement.getAttribute('value') == rValueInt) { // Compare string to int or int to int
+                                selectElement.selectedIndex = index;
+                                restoredOption = optionElement;
+                            }
+                        });
+                    } else {
+                        constants.forEach.call(selectElement.childNodes, function (optionElement, index) {
+                            if (optionElement.innerHTML === rValue) {
+                                selectElement.selectedIndex = index;
+                                restoredOption = optionElement;
+                            }
+                        });
+                    }
+
+                    restoredResponse = new objects.Response(questionObject.ID, restoredOption.innerHTML, rValueInt);
+                    responseArray.push(restoredResponse);
+                }
+            }
+
+            function restoreMonthAndDate(selectElement, restoreObject) {
+                var restoredResponse;
+                if (selectElement.className === yearSelectClass) {
+                    selectElement.selectedIndex = restoreObject.years;
+                } else if (selectElement.className === monthSelectClass) {
+                    selectElement.selectedIndex = restoreObject.months;
+                }
+                if (restoreObject.restoreValue) {
+                    restoredResponse = new objects.Response(questionId, restoreObject.restoreValue, rValueInt);
+                }
+
+                return restoredResponse;
+            }
+        };
+
+        // Whole part is years count, decimal part is months / 12.
+        // Exmaple: 5.3333333 - years:3, months: 4
+        function convertToMonthsValue() {
+            var result;
+            month =
+                     Number(row.getElementsByClassName(monthSelectClass)[0].value);
+            year =
+               Number(row.getElementsByClassName(yearSelectClass)[0].value);
+            result = year + month / 12;
+            return result;
+        }
+
+        // Whole part is years count, decimal part is months / 12.
+        // Exmaple: 5.3333333 - years:3, months: 4
+        function convertFromMonthsValue(rValue) {
+            var months, years, monthsValue;
+
+            monthsValue = Number(rValue);
+            months = parseInt(((monthsValue - parseInt(monthsValue)) * 12));
+            years = Math.floor((monthsValue));
+
+            return {
+                years: years,
+                months: months,
+                restoreValue: monthsValue
+            }
+        }
+        
+        return row;
+    }
+
+    function datadropDownRenderer(XMLDoc) {
+        var doc = XMLDoc || this.XMLDoc,
+            controlValueContainingTag = document.createElement('control_values'),
+            dynamicData = this.question.DynamicData,
+            emptyOtion;
+
+        functions.insertDynamicDataControlTags(controlValueContainingTag, dynamicData);
 
         doc.firstChild.appendChild(controlValueContainingTag);
        return dropDownRenderer.call(this, doc);
     };
 
     function cascadedropDownRenderer(XMLDoc) {
-        var doc = XMLDoc || this.XMLDoc;
-        throw new Error("Renderer not implemented.");
+        var questionId = this.question.ID,
+            doc = XMLDoc || this.XMLDoc,            
+            self = this,
+            row = datadropDownRenderer.call(this, doc),
+            selectElement = row.getElementsByTagName('select')[0],
+            selectElementContainingTableCell = selectElement.parentElement.parentElement;
+
+        // When the visible select element is changed two things(events) happen
+        // 1. The option and answer is updated
+        // 2. Dynamic DDL is requested, displayed/removed, and answer is again updated.
+        // The two events should be fired in particular order.
+
+        selectElement.onchange = function (e) {
+            var answers = JSON.parse(row.getAttribute(constants.ANSWER_ATTRIBUTE)),
+                currentAnswer,
+                classType;                        
+            
+            if (answers) {
+                answers.forEach(function (a) {
+                    if (a.questionId === self.question.ID) {
+                        currentAnswer = a;
+                        return;
+                    }
+                });
+                classType = currentAnswer.RValueInt;
+
+                var httpClient = new objects.DropdownHttpClient('http://localhost:61008/api/');
+                var url =
+                    httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);                
+
+                // create defered object 
+                $.when(httpClient.getTestAuthenticationToken()).
+                    then(function (data) {
+                        httpClient.getDynamicCascadeDropdown(
+                            url, data.Token, selectElementContainingTableCell, questionId)
+                    });              
+            } else {
+                selectElementContainingTableCell.
+                    removeChild(selectElementContainingTableCell.lastChild);
+            }
+        }
+        
+        return row;
     };
     //#endregion
 
-    // #region helper functions
-    function createRow(columns, cellContent, cellClass, returnsAnswerAttribute, hasMultipleAnswersAttribute) {
-        var row, columnsCount = columns.length, i, classAttribute;
-        
-        cellClass = (cellClass || '') + ' cell';
-        row = document.createElement('tr');
-
-        if (columns.nodeName) {
-            appendCell(row, cellContent, columns, cellClass);
-        } else {
-            for (i = 0; i < columnsCount; i++) {
-                appendCell(row, cellContent, columns[i], cellClass);
-            }
-        }
-       
-        if (returnsAnswerAttribute) { // not null, undefined, false
-            row.setAttribute(RETURN_ANSWER, returnsAnswerAttribute);
-        }
-        
-        if (hasMultipleAnswersAttribute) {
-            row.setAttribute(HAS_MULTIPLE_ANSWERS, hasMultipleAnswersAttribute);
-        }
-
-        return row;
-    }
-
-    function appendCell(row, cellContent, column, cellClass) {
-        var cell = createCell(column, cellContent);
-        cell.className = cellClass;
-        row.appendChild(cell);
-    }
-
-    function createCell(column, cellContent) { 
-        var possibleColumnNames = ['column', 'control_value'], cell = document.createElement('td'),
-            element, displayAttrValue, columnValueAttr, dynamicAttribute;
-
-        if (column.getAttribute !== undefined) {
-            columnValueAttr = column.getAttribute('value');
-            dynamicAttribute = column.getAttribute(Q_TEXT) || column.getAttribute(EXTERNAL_REF);
-
-            if (columnValueAttr) {
-                cell.setAttribute(ANSWER_ATTRIBUTE, columnValueAttr);
-            }
-
-            cell.setAttribute('colspan', column.getAttribute('columns') || 1);
-
-            if (possibleColumnNames.indexOf(column.localName) < 0) {
-                cell.appendChild(column);
-            } else {
-                if (cellContent !== undefined) {
-                    parseCellContent(cell, cellContent);
-                }
-            }
-
-            if (dynamicAttribute !== null) {
-                //cell.innerText = dynamicAttribute;
-                cell.innerHTML = dynamicAttribute;
-            } else { // Insert display text at beginning of innerHTML         
-                displayAttrValue = column.getAttribute('display');
-                if (displayAttrValue !== null) {
-                    cell.innerHTML = cell.innerHTML + displayAttrValue;
-                }
-            }
-        } else { // simple text.
-            cell.innerHTML = column;
-            cell.setAttribute('colspan', 1);
-        }
-
-        return cell;
-    }
-
-    // Creates the elements based on 'cellContent' object and inserts them in cell
-    function parseCellContent(cell, cellContent) {
-        var elements = cellContent.elements;
-        elements.forEach(function (elem) {
-            var domElement = createElement(elem);
-
-            if (elem.innerElements !== undefined && elem.innerElements.length > 0) {
-                elem.innerElements.forEach(function (innerElem) {
-                    var innerElement = createElement(innerElem);
-                    domElement.appendChild(innerElement);
-                });
-            }
-            cell.appendChild(domElement);
-        });
-    }
-
-    function createElement(elem) {
-        var element = document.createElement(elem.type);
-        if (elem.attributes && elem.attributes.length) {
-            elem.attributes.forEach(function (attr) {
-                element.setAttribute(attr.name, attr.value);
-            });
-        }
-
-        return element;
-    }
-
-    function insertDynamicContents(doc, contentHolder, contentType, contentClass) {
-        var dynamicContent = Array.prototype.slice.call(doc.getElementsByTagName(contentType), 0),
-            i = dynamicContent.length - 1;
-        
-        for (; i >= 0; i--) {
-            // Dynamic content is created and added as tag/s
-            // during parsing XML in 'parseXML' method in the 'XMLRendererFactory'.
-            insertDynamicContent(dynamicContent[i], contentHolder, contentClass);
-        }
-    }
-
-    function insertDynamicContent(content, contentHolder, contentClass) {
-        var cell, columnsAttributeValue;
-        // Tag contains dynamic data: 
-        //Example:   '<column ExternalRef='Some dynamic content' display="ExternalRef"/>'             
-
-        if (content.getAttribute('display').indexOf(Q_TEXT) >= 0 ||
-            content.getAttribute('display').indexOf(EXTERNAL_REF) >= 0) {
-            cell = createCell(content);
-            cell.className = (contentClass || '') + ' cell';
-
-            addFirst(cell, contentHolder);
-        }
-
-        columnsAttributeValue = content.getAttribute('columns');
-        if (columnsAttributeValue !== null) {
-            cell.setAttribute('colspan', columnsAttributeValue);
-        }
-    };
-
-    function parseAsNumberOrNull(obj) {
-        var res = parseFloat(obj);         
-        return obj - res >= 0 ? res : null; // Used code from jQuery.isNumeric
-    }
-
-    // If 'contentHolder' is 'tr' - use 'Node' methods,
-    // if 'contentHolder' is array-like - use array methods
-    function addFirst(cell, contentHolder) {
-        var firstChild;
-        if (contentHolder.length !== undefined) {
-            if (contentHolder.length > 0) {
-                Array.prototype.splice.call(contentHolder, 0, 0, cell);
-            } else {
-                Array.prototype.push.call(contentHolder, cell);
-            }
-        }
-
-        if (contentHolder.nodeName !== undefined) {
-            firstChild = contentHolder.firstChild;
-            if (firstChild) {
-                contentHolder.insertBefore(cell, firstChild);
-            } else {
-                contentHolder.appendChild(cell);
-            }
-        }
-    }
-    
-    
-    function createControlValueTag(controlValue, columnDisplay) {
-        var col = document.createElement('control_value'),
-            value =
-            (controlValue.getAttribute && controlValue.getAttribute('value')) ||
-            controlValue;
-
-        col.setAttribute('display', columnDisplay);
-        col.setAttribute('value', value);
-        col.setAttribute('colspan', 1);
-
-        return col;
-    }
-
-    function attachUpdateAnswer(node, row, question) {
-        var radioButtons = node.getElementsByTagName('input'); 
-        if (radioButtons.length >= 0) {
-            forEach.call(radioButtons, function (radioButton) {
-                radioButton.addEventListener('change', function () {
-                    var td = radioButton.parentNode.parentNode; // 'input' is in 'label', which is in 'td'.
-                    updateAnswer(td, row, question);
-                });
-            });
-        }
-    }
-
-    function attachRowFunctionality(row, innerTable, question) {
-        answers = (innerTable && innerTable.childNodes) || row.childNodes;
-
-        forEach.call(answers, function (node) {
-            attachUpdateAnswer(node, row, question);
-        });
-
-        restoreAnswer(row, answers, question);
-    }
-
-    function updateAnswer(node, row, question) {
-        var answerValue = node.getAttribute(ANSWER_ATTRIBUTE), responseArray = [],
-            response = new Response(question.ID, answerValue, null);
-        responseArray.push(response);
-
-        responseToString = JSON.stringify(responseArray);
-        row.setAttribute(ANSWER_ATTRIBUTE, responseToString);
-    }
-
-    function restoreAnswer(row, childNodes, question) {
-        // If response != null
-        var response = question.Data.Response, rValue;
-
-        if (response !== null) {
-            rValue = response.RValue;
-
-            forEach.call(childNodes, function (node) {
-                var radioButtons = node.getElementsByTagName('input');
-                if (radioButtons.length >= 0) {
-                    forEach.call(radioButtons, function (radioButton) {
-                        var td = radioButton.parentNode.parentNode,
-                            dataAnswerValue = td.getAttribute(ANSWER_ATTRIBUTE);
-
-                        if (dataAnswerValue === response.RValue) {
-                            radioButton.setAttribute('checked', 'checked');
-                            updateAnswer(td, row, question);
-                        }
-
-                    });
-                }
-
-            });
-        }
-    }
-
-    // #endregion
-
-    // #region rendering objects     
-
-    var Calendar = (function () {
-
-        var Calendar = function () {
-            this.day,
-            this.month,
-            this.year;
-        };
-
-        Calendar.prototype.isLeap = function (year) {
-            return ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0);
-        }
-
-        Calendar.prototype.getDaysInMonth = function (month, year) {
-            return new Date(year || this.year, month, 0).getDate();
-        }
-
-        return Calendar;
-    })();    
-
-    var Response = function (id, rValue, rValueInt) {
-        this.questionId = id;
-        this.RValue = rValue;
-        this.RValueInt = rValueInt;
-    }
-
-    // #endregion
-
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_TEXT, textRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_LABEL, labelRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_RADIO, radioGroupRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_DROPDOWN, dropDownRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_SCALE, scaleRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_VERTICAL_GROUP, verticalGroupRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_DATE, dateRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_DATADROPDOWN, datadropDownRenderer);
-    XMLRendererFactory.addXMLRenderer(DISPLAY_TYPE_CASCADEDROPDOWN, cascadedropDownRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_TEXT, textRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_LABEL, labelRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_RADIO, radioGroupRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_DROPDOWN, dropDownRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_SCALE, scaleRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_VERTICAL_GROUP, verticalGroupRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_DATE, dateRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_DATADROPDOWN, datadropDownRenderer);
+    XMLRendererFactory.addXMLRenderer(constants.DISPLAY_TYPE_CASCADEDROPDOWN, cascadedropDownRenderer);
 })();
+
 
