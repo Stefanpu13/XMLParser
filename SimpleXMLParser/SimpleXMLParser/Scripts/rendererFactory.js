@@ -1,4 +1,5 @@
-﻿/// <reference path="XMLScaleRendererManager.js" />
+﻿/// <reference path="RenderersCommonObjects.js" />
+/// <reference path="objects.XMLScaleRendererManager.js" />
 /// <reference path="jquery-2.1.0.min.js" />
 // Gets XML renderer based on the type of the XML content. 
 // Different renderers present different strategies to render XML to html.
@@ -22,7 +23,9 @@ var XMLRendererFactory = (function () {
             this.XMLDoc = XMLDoc;
             this.convertToHTML = XMLRenderingFunc;
             this.rowClassName = rowClassName;
-        }
+            this.eventListenersList = {};
+        } 
+
         // function is set to prototype and not copied to each object.
         XMLRenderer.prototype.convertToHTML = function () { };        
 
@@ -45,7 +48,11 @@ var XMLRendererFactory = (function () {
         /// <summary>Gets XML renderer based on the type of the XML content </summary>
         /// <param name='XMLContent' type='String'>The XML to render to HTML. </param>
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
-        var questionObject, xmlRenderer, scaleRowClassName;
+        var questionObject,
+            xmlRenderer,
+           scaleRowClassName,
+                objects = renderersCommon.objects;
+
         try {
             questionObject = JSON.parse(questionString);
         } catch (e) { // Invalid JSON. Possible reasons: unescaped characters(quotes)
@@ -61,26 +68,28 @@ var XMLRendererFactory = (function () {
         renderFunc = renderers[displayType];
         // Make a copy of the renderer!!!
 
-        if (XMLScaleRendererManager.isScaleRenderer(displayType)) {
+        if (objects.XMLScaleRendererManager.isScaleRenderer(displayType)) {
             scaleRowClassName = 'question-' + questionObject.ID;
             xmlRenderer =
                 new XMLRenderer(questionObject, XMLDoc, renderFunc, scaleRowClassName);
 
-            if (XMLScaleRendererManager.currentRendererIsScale()) {
-                XMLScaleRendererManager.currentRenderer = xmlRenderer;
+            if (objects.XMLScaleRendererManager.currentRendererIsScale()) {
+                objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
             }
 
         } else {
             xmlRenderer = new XMLRenderer(questionObject, XMLDoc, renderFunc);
         }
-        XMLScaleRendererManager.currentRenderer = xmlRenderer;
-        XMLScaleRendererManager.currentRendererType = displayType;
+        objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
+        objects.XMLScaleRendererManager.currentRendererType = displayType;
         return xmlRenderer;
     }
     
     function parseXML(question) {
         var XMLDoc = undefined, XMLContent = question.Data.DisplayDefinition,
         parser = new DOMParser();
+
+        XMLContent = changeNOBRWithSpan(XMLContent);
 
         XMLDoc = parser.parseFromString(XMLContent, "text/xml");
         if (XMLDoc.getElementsByTagName('parsererror').length > 0) {
@@ -183,6 +192,19 @@ var XMLRendererFactory = (function () {
         }
 
         return text;
+    }
+
+    function changeNOBRWithSpan(content) {
+        // Invalid '<' and '>'
+        // Replace nobr with system of 'class' attr and 'span'
+        if (content.indexOf('nobr') >= 0) {
+            content = replaceSymbol(content, '<nobr>', '&lt;span class=&quot;no-wrap&quot;&gt;');
+        }
+        if (content.indexOf('/nobr') >= 0) {
+            content = replaceSymbol(content, '</nobr>', '&lt;/span&gt;');
+        }
+
+        return content
     }
 
     return {
