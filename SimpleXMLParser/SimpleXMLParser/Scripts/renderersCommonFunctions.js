@@ -124,6 +124,26 @@ renderersCommon.functions = (function () {
         }
     };
 
+    function insertDynamicSelect(dynamicData, selectElementContainingTableCell, questionId) {
+        var controlValueContainingTag = document.createElement('control_values'),
+            labelContainer;
+
+        insertDynamicDataControlTags(controlValueContainingTag, dynamicData);
+        labelContainer =
+            createSelectElement(controlValueContainingTag, questionId,
+             "", "", constants.DYNAMIC_SELECT_CLASS_NAME).labelContainer;
+
+        // If there is already dynamic select element - remove it.
+        if (selectElementContainingTableCell.lastChild !== selectElementContainingTableCell.firstChild) {
+            selectElementContainingTableCell.
+                removeChild(selectElementContainingTableCell.lastChild);
+        }
+
+        selectElementContainingTableCell.appendChild(labelContainer);
+
+        return labelContainer;
+    }
+
     function parseAsNumberOrNull(obj) {
         var res = parseFloat(obj);
         return obj - res >= 0 ? res : null; // Used code from jQuery.isNumeric
@@ -186,6 +206,20 @@ renderersCommon.functions = (function () {
         restoreAnswer(row, answers, question);
     }
 
+    function attachChangeEventHandlers(selectElements, handlerFunction) {
+        var args = arguments;
+
+        selectElements.forEach(function (label) {
+            var selectElem = label.lastChild,                
+                // arguments to 'handlerFunction' are passed to 'attachChangeEventHandlers'
+                argsArray = Array.prototype.slice.call(args, 2);
+            selectElem.addEventListener('change', function (e) {
+                //updateDropDownAnswer(e);
+                handlerFunction(e, argsArray);
+            });
+        });
+    }
+
     function updateAnswer(node, row, question) {
         var answerValue = node.getAttribute(constants.ANSWER_ATTRIBUTE), responseArray = [],
             response = new objects.Response(question.ID, answerValue, null);
@@ -219,6 +253,19 @@ renderersCommon.functions = (function () {
 
             });
         }
+    }
+
+    function findLastIndex(array,comparedValue,  predicateFunction) {
+        var length = array.length,
+            i = length - 1;
+
+        for (; i>=0; i--) {
+            if (predicateFunction(array[i], comparedValue)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     // #region dropdown renderers helper functions
@@ -311,14 +358,16 @@ renderersCommon.functions = (function () {
 
     return {
         createRow: createRow,
-        appendCell: appendCell, 
-        //createElement: createElement,        
-        insertDynamicContents: insertDynamicContents, 
+        appendCell: appendCell,                 
+        insertDynamicContents: insertDynamicContents,
+        insertDynamicSelect:insertDynamicSelect,
         createControlValueTag: createControlValueTag,        
-        attachRowFunctionality: attachRowFunctionality,        
+        attachRowFunctionality: attachRowFunctionality,
+        attachChangeEventHandlers:attachChangeEventHandlers,
         createSelectElement: createSelectElement,        
-        createOptionElement: createOptionElement,
+        createOptionElement: createOptionElement,        
         insertDynamicDataControlTags: insertDynamicDataControlTags,
-        isMonthsYearsDropDownType: isMonthsYearsDropDownType
+        isMonthsYearsDropDownType: isMonthsYearsDropDownType,
+        findLastIndex: findLastIndex
     }
 })();
