@@ -6,7 +6,7 @@ var XMLScaleRendererManager = (function () {
     }
 
     function showScaleRowIfNotVisible(e) {
-
+        // TODO: Implement method
     }
 
     function currentRendererIsScale() {
@@ -20,4 +20,6 @@ var XMLScaleRendererManager = (function () {
         showScaleRowIfNotVisible: showScaleRowIfNotVisible,
         currentRendererIsScale: currentRendererIsScale
     }
+
+    return rendererManager;
 })();
