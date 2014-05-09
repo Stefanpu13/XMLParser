@@ -1,4 +1,5 @@
-﻿var renderersCommon = renderersCommon || {}; // namespace declaration in different classes
+﻿/// <reference path="renderersConstants.js" />
+var renderersCommon = renderersCommon || {}; // namespace declaration in different classes
 renderersCommon.objects = (function () {
 
     var Calendar = (function () {
@@ -31,18 +32,11 @@ renderersCommon.objects = (function () {
                 this.baseUrl = baseUrl;
             }
 
-            DropdownHttpClient.prototype.getClassTypeUrl = function (displayDef, classType) {
-                return this.baseUrl + "questions/CascadeDropDownClasses?displayDef=" +
-                   displayDef + '&classType=' + classType;
+            function isProductionEnviroment() {
+                return document.URL.indexOf('//localhost') >= 0;
             }
 
-            DropdownHttpClient.prototype.getAuthenticationToken = function () {
-                var token = localStorage.getItem('AuthorizationCookie');
-
-                return { Token: token };
-            }
-
-            DropdownHttpClient.prototype.getTestAuthenticationToken = function () {
+            function getTestAuthenticationToken() {
                 var user = {
                     UserName: 'demoresident611',
                     Password: '222222',
@@ -61,9 +55,44 @@ renderersCommon.objects = (function () {
                 });
             }
 
+            DropdownHttpClient.prototype.getClassTypeUrl = function (displayDef, classType) {
+                return this.baseUrl + "questions/CascadeDropDownClasses?displayDef=" +
+                   displayDef + '&classType=' + classType;
+            }
+
+            DropdownHttpClient.prototype.getAuthenticationToken = function () {
+                var token,
+                    user;
+                if (isProductionEnviroment()) {
+                    return getTestAuthenticationToken();
+                } else {
+                    token = localStorage.getItem('AuthorizationCookie');
+                    return { Token: token };
+                }
+            }
+
+            //DropdownHttpClient.prototype.getTestAuthenticationToken = function getTestAuthenticationToken() {
+            //    var user = {
+            //        UserName: 'demoresident611',
+            //        Password: '222222',
+            //        FacilityId: '150'
+            //    },
+            //        url = 'http://localhost:61008/api/Users/Authenticate';
+
+            //    return $.ajax({
+            //        url: url,
+            //        type: 'post',
+            //        data: JSON.stringify(user),
+            //        contentType: 'application/json',
+            //        error: function (e) {
+            //            console.log(e);
+            //        }
+            //    });
+            //}
+
             DropdownHttpClient.prototype.getDynamicCascadeDropdown =
-                function (url, token, selectElementContainingTableCell, questionId) {
-                    $.ajax({
+                function (url, token, questionId) {
+                   return $.ajax({
                         url: url,
                         type: 'get',
                         // 'async' is set to execute next 'change' event ONLY avter the current has returned.
@@ -71,26 +100,6 @@ renderersCommon.objects = (function () {
                         headers: {
                             'X-Token': token,
                             'Content-Type': 'application/json'
-                        },
-                        success: function insertDynamicSelect(dynamicData) {
-                            var controlValueContainingTag = document.createElement('control_values'),
-                                labelContainer,
-                                dynamicSelectClassName = 'dynamic-select',
-                                functions = renderersCommon.functions;
-
-                            functions.insertDynamicDataControlTags(controlValueContainingTag, dynamicData);
-                            labelContainer =
-                                functions.createSelectElement(controlValueContainingTag, questionId,
-                                 "", "", dynamicSelectClassName).labelContainer;
-
-                            // If there is already dynamic select element - remove it.
-                            if (selectElementContainingTableCell.lastChild !== selectElementContainingTableCell.firstChild) {
-                                selectElementContainingTableCell.
-                                    removeChild(selectElementContainingTableCell.lastChild);
-                            }
-
-                            selectElementContainingTableCell.appendChild(labelContainer);
-
                         },
                         error: function (e) {
                             console.log(e);
