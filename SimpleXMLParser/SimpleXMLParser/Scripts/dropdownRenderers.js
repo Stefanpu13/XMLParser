@@ -211,24 +211,24 @@ var dropdownRenderers = (function () {
         // The two events should be fired in particular order.
 
         selectElement.onchange = function (e) {
-            var answers = JSON.parse(row.getAttribute(constants.ANSWER_ATTRIBUTE)),
+            var selectElement = e.target,
+                selectedOption = selectElement.options[selectElement.selectedIndex],
+                classType = selectedOption.value,                
                 currentAnswer,
                 classType,
                 httpClient,
                 url;
 
-            if (answers) {
-                answers.forEach(function (a) {
-                    if (a.questionId === self.question.ID) {
-                        currentAnswer = a;
-                        return;
-                    }
-                });
-                classType = currentAnswer.RValueInt;
+            if (selectElement.selectedIndex > 0) { 
 
                 httpClient = new objects.DropdownHttpClient('http://localhost:61008/api/');
                 url =
                 httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
+
+                // remove last response - this is response from dynamic dropdown.
+                if (containsDynamicResponse()) {
+                    removeResponse(row, questionId);
+                }
 
                 // create defered object - this is for testing purposes
                 $.when(httpClient.getAuthenticationToken()).
@@ -241,15 +241,24 @@ var dropdownRenderers = (function () {
                                     selectElementsArray = [containingLabel];
 
                                 functions.
-                                    attachChangeEventHandlers(selectElementsArray,
-                                    updateDropDownAnswer, row, questionId)
+                                    attachChangeEventHandlers(selectElementsArray, updateDropDownAnswer,
+                                    row, questionId, undefined, containsDynamicResponse)
                             });
                     });
-
-                //#region deploy variant
+                
             } else {
+                // removeAnswer
+                row.removeAttribute(constants.ANSWER_ATTRIBUTE);
+
+                // remove dynamic dropdown
                 selectElementContainingTableCell.
                     removeChild(selectElementContainingTableCell.lastChild);
+            }
+
+            function containsDynamicResponse() {
+                // the dynamic dropdown has its value set.
+                var answers = JSON.parse(row.getAttribute(constants.ANSWER_ATTRIBUTE));
+                return answers.length > 1;
             }
         }
 
@@ -266,18 +275,19 @@ var dropdownRenderers = (function () {
             responseObject, 
             row = args[0],
             questionId = args[1],
-            dropDownLabelAttribute = args[2];
+            dropDownLabelAttribute = args[2],
+            containsAnswerFunc = args[3];
 
-        updateAnswerAttribute(row, selectedOptionValue,
-            selectedOptionInnerText, questionId, dropDownLabelAttribute);
+        updateAnswerAttribute(row, selectedOptionValue, selectedOptionInnerText,
+            questionId, dropDownLabelAttribute, containsAnswerFunc);
     }
 
     // updates constants.ANSWER_ATTRIBUTE in the row by adding or removing responses 
-    function updateAnswerAttribute(row, selectedOptionValue,
-        selectedOptionInnerText, questionId, dropDownLabelAttribute) {
+    function updateAnswerAttribute(row, selectedOptionValue, selectedOptionInnerText,
+        questionId, dropDownLabelAttribute, containsAnswerFunc) {
         if (selectedOptionValue !== '') {
-            setNonEmptySelectedOptionAnswer(row, selectedOptionValue,
-                selectedOptionInnerText, questionId, dropDownLabelAttribute);
+            setNonEmptySelectedOptionAnswer(row, selectedOptionValue, selectedOptionInnerText,
+                questionId, dropDownLabelAttribute, containsAnswerFunc);
         } else {
             setEmptySelectedOptionAnswer(row, selectedOptionValue,
                 selectedOptionInnerText, questionId, dropDownLabelAttribute);
@@ -311,14 +321,20 @@ var dropdownRenderers = (function () {
     }
 
     function setNonEmptySelectedOptionAnswer(row, selectedOptionValue,
-        selectedOptionInnerText, questionId, dropDownLabelAttribute) {
+        selectedOptionInnerText, questionId, dropDownLabelAttribute, containsAnswerFunc) {
         var currentAnswer = row.getAttribute(constants.ANSWER_ATTRIBUTE),
             responses,
-            newResponsesString;
+            newResponsesString,
+            containsResponseResult;
         if (currentAnswer !== null) {
-            responses = JSON.parse(currentAnswer);
             // will be array of 'response' objects
-            if (containsResponse(responses, questionId)) {
+            responses = JSON.parse(currentAnswer);
+            
+            // If there is 'responseAnswerFunc' - test with it else test with 'containsResponse'
+            containsResponseResult = (containsAnswerFunc && containsAnswerFunc()) ||
+               (!containsAnswerFunc && containsResponse(responses, questionId));
+
+            if (containsResponseResult) {
                 replaceResponse(responses, selectedOptionValue,
                     selectedOptionInnerText, questionId, dropDownLabelAttribute);
             } else {
