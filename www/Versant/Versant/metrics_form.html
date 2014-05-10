@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Metrics</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css"/>
+        <link rel="stylesheet" type="text/css" href="css/form.css"/>
+        <link rel="stylesheet" type="text/css" href="css/jAlert-v2.css"/>
+        <link rel="stylesheet" type="text/css" href="css/renderer.css"/>
+        <script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+        <script type="text/javascript" src="js/moment.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>        
+        <script type="text/javascript" src="js/renderersConstants.js"></script>
+        <script type="text/javascript" src="js/renderersCommonObjects.js"></script>
+        <script type="text/javascript" src="js/renderersCommonFunctions.js"></script>  
+        <script type="text/javascript" src="js/rendererFactory.js"></script>  
+        <script type="text/javascript" src="js/dropdownRenderers.js"></script>
+        <script type="text/javascript" src="js/renderers.js"></script> 
+        <script type="text/javascript" src="js/metrics_form.js"></script>
+        <script type="text/javascript" src='js/jAlert-v2.js'></script>
+        
+    </head>
+    <body>
+        <div class="header">
+            <div class="titlebar no-select">
+                <img id="home_button" class="btn_menu" src="img/header_button.png" width="44" height="44"/>
+                <img id="navigate_backward" class="btn_back" src="img/hdr_back_disabled.png" width="44" height="44"/>
+                <img id="navigate_forward" class="btn_fwd" src="img/hdr_forward_disabled.png" width="44" height="44"/>
+                Metrics Form
+                <span class="logout">Logout</span>
+            </div>
+        </div>
+
+        <div class="content no-select">
+            <div class="profile">
+                <div class="datebox-large bg-green">
+                    <div id="currentDateMonthDiv" class="month-large">AUG</div>
+                    <div id="currentDateDayDiv" class="day-large">3</div>
+                    <div id="currentDateYearDiv" class="year-large">2014</div>
+                </div>
+                <div class="prof-container">
+                    <div class="prof-name">Debbie Resident</div>
+                    <div id="userFullName" class="prof-title">Resident Metrics</div>
+                    <div id="groupNameDiv" class="prof-subtitle">1. Group Cohesion</div>
+                </div>
+                <div id="expirationDateContainer" class="prof-expire-container">
+                    <div class="datebox-large bg-blue right">
+                        <div id="expirationDateMonthDiv" class="month-large">AUG</div>
+                        <div id="expirationDateDayDiv" class="day-large">4</div>
+                        <div id="expirationDateTimeDiv" class="year-large">2014</div>
+                    </div>
+                    <span class="prof-expire-txt">Evaluation<br/>expires:</span>
+                </div>
+            </div>
+
+            <div class="form-question-container">
+                <div class="form-question-header">
+                    The following <span id="questions_number">six</span> items ask for your opinion about the colleague group (nursing staff) with whom you work:
+                </div>
+               
+               <div id="questionsContainer">
+                   <table id="questionsTable"></table>
+               </div>
+
+                <div class="form-btn-container">
+                    <button id="complete_later">Complete Later</button>
+                    <button id="submit">Submit</button>
+                </div>
+
+                <div id="lastSavedContainer" class="form-saved-container">
+                    <div class="form-saved-left">
+                        Last Saved:
+                        <div class="form-datebox bg-blue">
+                            <div class="form-date-cell">
+                                <div id="lastSavedMonthDiv" class="form-month">AUG</div>
+                                <div id="lastSavedDayDiv" class="form-day">1</div>
+                                <div id="lastSavedYearDiv" class="form-year">2014</div>
+                            </div>
+                        </div>
+                        <div class="form-time">11:59 AM</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div id="submitBox" class="submit-box hidden">
+            <div id="submitBoxTextDiv" class="submit-box-message submit-box-text">
+                Once submitted you can no longer edit this document.
+                Click submit to confirm.
+            </div>
+            <div>
+                <div id="cancelRequestButton" class="submit-box-button"><div class="submit-box-button-text-width">cancel</div></div>
+                <div id="submitRequestButton" class="submit-box-button display-left-block"><div class="submit-box-button-text-width">submit</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="submitConfirmationBox" class="submit-box hidden" >
+            <div id="submitConfirmationTextDiv" class="submit-box-message submit-bot-text">
+            </div>
+            <div>
+                <div id="confirmationCancelRequestButton" class="submit-box-button">
+                    <div class="submit-box-button-text-width">cancel</div>
+                </div>
+                
+                <div id="submitConfirmationRequestButton" class="submit-box-button display-left-block">
+                    <div class="submit-box-button-text-width">submit anyway</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="messageBox" class="submit-box hidden" >
+            <div id="messageBoxTextDiv" class="submit-box-message submit-bot-text">
+                <div class="center-div">Data saved successfully!</div>
+            </div>
+            <div>
+                <div id="okConfirmationButton" class="submit-box-button">
+                    <div class="submit-box-button-text-width">OK</div>
+                </div>
+            </div>
+        </div>
+<!--        <div class="combo-popup no-select hidden">
+            <div class="combo-item combo-first">very much above average</div>
+            <div class="combo-item">above average</div>
+            <div class="combo-item">average</div>
+            <div class="combo-item">below average</div>
+            <div class="combo-item">very much below average</div>
+        </div>-->
+        <script type="text/javascript">metrics_form.initialize();</script>
+    </body>
+</html>

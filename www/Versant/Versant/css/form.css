@@ -1,0 +1,220 @@
+.form-question-container {
+    width: 100%;
+    min-height: 200px;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.form-question-header {
+    width: 100%;
+    height: 86px;
+    text-align: center;
+    font-weight: 200;
+    padding: 25px 150px;
+    box-sizing: border-box;
+}
+
+.form-question-row {
+    position: relative;
+    width: 100%;
+    height: 62px;
+    clear: both;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.form-question-row-header {
+    color: #b4b4b4;
+    height: 22px;
+    font-size: 14px;
+    line-height: 22px;
+    padding-left: 100px;
+    padding-right: 60px;
+    box-sizing: border-box;
+}
+
+.form-question-prefix{
+    color: #b4b4b4;
+}
+
+.form-question-row-content {
+    position: relative;
+    color: #000;
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    padding-left: 100px;
+    padding-right: 60px;
+    box-sizing: border-box;
+}
+
+.form-question-row-background-color-white{
+     background-color: #fff;
+}
+
+.form-question-row-background-color-grey{
+     background-color: #f2f2f2;
+}
+
+.form-question {
+    width: calc(100% - 150px);
+    height: 40px;
+    font-size: 16px;
+    line-height: 18px;
+    display: table;
+    overflow: hidden;
+}
+
+.form-question span {
+    display: table-cell;
+    vertical-align: middle;
+    white-space: normal;
+}
+
+.form-answer {
+    position: absolute;
+    top: 0;
+    right: 65px;
+    width: 140px;
+    height: 40px;
+    font-size: 12px;
+    line-height: 40px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.form-question-status {
+    position: absolute;
+    width:  24px;
+    height: 24px;
+    line-height: 24px;
+    top: 8px;
+    right: 30px;
+    padding: 0;
+}
+
+.form-btn-container {
+    height: 45px;
+    width: 100%;
+    margin: 44px auto 24px;
+    text-align: center;
+}
+
+.submit-box{
+    position: absolute;
+//    top: 0;
+//    left: 0;
+//    bottom: -180%;
+//    right: 0;
+//    margin: auto;
+    width: 300px;
+    height: 200px;
+    background-color: #e6e6e7;
+    font-family: 'Helvetica Neue', 'Helvetica' sans-sefir;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    word-wrap:break-all;
+    left:50%;
+    bottom: 250px;
+    margin:-100px 0 0 -150px;
+   }
+
+.submit-box-message{
+    height: 150px;
+    width:100%;
+    color:black;
+    border-bottom-color: black;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+
+}
+
+.submit-box-button{
+    height: 50px;
+    width: 50%;
+    color: #007aff;
+    display: inline-block;
+    margin: 0 -4px 0 0;
+
+}
+
+.submit-box-text{
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.submit-box-button-text-width{
+    margin-top:15px;
+}
+
+.center-div{
+   position: absolute;
+   margin 0 auto;
+}
+
+.display-left-block{
+    border-left-color: black;
+    border-left-width: 1px;
+    border-left-style: solid;
+}
+
+button {
+    height: 45px;
+    width: 300px;
+    background-color: #e6e6e7;
+    color: #007aff;
+    font-family: 'Helvetica Neue', 'Helvetica', sans-serif;
+    font-size: 18px;
+    border: none;
+    margin: 0 8px;
+    border-radius: 4px;
+}
+
+.form-saved-container {
+    position: relative;
+    width: 616px;
+    height: 160px;
+    margin: 0 auto;
+}
+
+.form-saved-left {
+    width: 300px;
+    height: 100%;
+    font-weight: 300;
+    text-align: center;
+}
+
+.form-datebox {
+    width:  95px;
+    height: 95px;
+    margin: 10px auto;
+    color: #fff;
+    display: table;
+}
+
+.form-date-cell {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.form-month {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.form-day {
+    font-size: 32px;
+}
+
+.form-year {
+    font-size: 13px;
+    font-weight: 300;
+}
+
+.form-time {
+    font-size: 13px;
+    font-weight: 200;
+}

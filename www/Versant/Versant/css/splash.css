@@ -1,0 +1,17 @@
+body {
+    background-color: #fff;
+    margin: auto;
+    padding: 0;
+    text-align: center;
+}
+
+.container {
+    position: absolute;
+    width: 566px;
+    height: 164px;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}

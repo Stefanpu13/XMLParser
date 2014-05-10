@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Metrics</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css"/>
+        <link rel="stylesheet" type="text/css" href="css/jAlert-v2.css">
+        <script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+        <script type="text/javascript" src="js/moment.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/metrics.js"></script>
+        <script type="text/javascript" src="js/timingGroups.js"></script>
+        <script src='js/jAlert-v2.js'></script>
+        <script type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="header">
+            <div class="titlebar no-select">
+                <img id='home_button'  class="btn_menu" src="img/header_button.png" width="44" height="44"/>
+                <img id="navigate_backward" class="btn_back" src="img/hdr_back_disabled.png" width="44" height="44"/>
+                <img id="navigate_forward" class="btn_fwd" src="img/hdr_forward_disabled.png" width="44" height="44"/>
+                Resident Metrics
+                <span id="logoutButton" class="logout">Logout</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="profile no-select">
+                <div class="datebox-large bg-green">
+                    <div id="currentDateMonthDiv"  class="month-large">AUG</div>
+                    <div id="currentDateDayDiv" class="day-large">3</div>
+                    <div id="currentDateYearDiv" class="year-large">2014</div>
+                </div>
+                <div class="prof-container">
+                    <div id="userFullNameDiv" class="prof-name">Debbie Resident</div>
+                    <div class="prof-title">Resident Metrics</div>
+                </div>
+            </div>
+
+            <div class="metric-title-container no-select">
+                <div class="metric-title">Scheduled Metrics</div>
+                <div class="metric-subtitle">These Packages will be unavailable after their end date.</div>
+            </div>
+
+            <div class="metric-tab-container no-select">
+                <div id="availableMetricsTab" class="metric-tab bg-tab-enabled">Available Metrics</div>
+                <div id="upcomingMetricsTab" class="metric-tab bg-tab-disabled">Upcoming Metrics</div>
+            </div>
+
+            <div class="metric-view no-select">
+                <div id="metricHeader" class="metric-table-header">
+                    <div class="metric-header-status">Status</div>
+                    <div id="packagesAvailableDiv" class="metric-header-title"> <span id="packagesAvailableSpan">1</span> Scheduled Package Available</div>
+                     <div id="upcomingMetricsAvailableDiv" class="metric-header-title hidden"><span id="upcomingMetricsAvailableSpan">11</span> upcoming metrics</div>
+                    <div class="metric-header-start">End</div>
+                    <div class="metric-header-start">Start</div>
+                </div>
+
+                <div id="unavailableMetricsDiv" class="metric-no-packages hidden">There are no packages available at this time.</div>
+                
+                    <div class="visible" id="metric_table">
+                        <div id="availableMetricsMasterDiv">
+                            <div id="availableMetricsDiv">
+   
+                            </div>
+                            
+                            <div id="availableMetricsExpandDiv" class="hidden">
+                                
+                            </div>
+                        </div>
+                        
+                        <div id="upcomingMetricsMasterDiv" class="hidden" >
+                            <div id="upcomingMetricsDiv"></div>
+                            <div id="upcomingMetricsExpandDiv" class="hidden"></div>
+                        </div>
+  
+                        
+
+                        
+                        <div id="expandButton" class="metric-table-expander bg-light-grey">
+                            expand <img src="img/expand.png" width="23" height="23"/>
+                        </div>
+                        
+                       <div id="hideButton" class="metric-table-expander bg-light-grey hidden" >
+                           collapse <img src="img/expand.png"  class="rotate-360" width="23" height="23" />
+                       </div>
+                        
+
+                </div>
+
+                <br/><br/>
+
+                <div class="metric-title-container no-select">
+                    <div class="metric-title">Non-scheduled Metrics</div>
+                    <div class="metric-subtitle">These packages do not expire. You can submit multiple times.</div>
+                </div>
+
+                <br/>
+                <div id="timingGroupSelectDiv" class="combobox no-select">Select A Timing Group</div>
+                <div id="timingGroupDiv" class="combo-popup no-select hidden" ></div>
+                <br/>
+                
+                <div id="timingGroupResultsDiv" class="hidden">
+                    <div class="metric-table-header">
+                        <div class="metric-header-status">Status</div>
+                        <div class="metric-header-title"></div>
+                        <div class="metric-header-sub">Last<br/>Submission</div>
+                        <div class="metric-header-sub">Submissions</div>
+                    </div>
+                    
+                    <div class="visible" id="ns_metric_table">
+                        <div id="nonScheduledMetricsMasterDiv">
+                            <div id="nonScheduledMetricsDiv">
+                                
+                            </div>
+                            
+                            <div id="nonScheduledMetricsExpandDiv" class="hidden">
+                                
+                            </div>
+                        </div>
+                        <div id="expandNonScheduledMetricsButton" class="metric-table-expander bg-light-grey">
+                            expand <img src="img/expand.png" width="23" height="23" />
+                        </div>
+                        
+                        <div id="collapseNonScheduledMetricsButton" class="metric-table-expander bg-light-grey hidden">
+                            collapse <img src="img/expand.png" class="rotate-360" width="23" height=23"" />
+                        </div>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+        <script type="text/javascript">metrics.initialize();</script>
+        <script type="text/javascript">timingGroups.initialize();</script>
+    </body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Metrics</title>
+        <link rel="stylesheet" type="text/css" href="css/style.css"/>
+        <link rel="stylesheet" type="text/css" href="css/summary.css"/>
+        <link rel="stylesheet" type="text/css" href="css/jAlert-v2.css">
+        <script type="text/javascript" src="js/jquery-2.1.0.js"></script>
+        <script type="text/javascript" src="js/moment.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/metrics_summary.js"></script>
+        <script type="text/javascript" src="http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js"></script>
+        <script src='js/jAlert-v2.js'></script>
+        <script type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="header">
+            <div class="titlebar no-select">
+                <img id="homeButton" class="btn_menu" src="img/header_button.png" width="44" height="44"/>
+                <img id="navigate_backward" class="btn_back" src="img/hdr_back_disabled.png" width="44" height="44"/>
+                <img id="navigate_forward" class="btn_fwd" src="img/hdr_forward_disabled.png" width="44" height="44"/>
+                Metrics Summary
+                <span id="logoutButton" class="logout">Logout</span>
+            </div>
+        </div>
+        
+        <div class="content no-select">
+            <div class="profile">
+                <div class="datebox-large bg-green">
+                    <div id="currentDateMonthDiv" class="month-large">AUG</div>
+                    <div id="currentDateDayDiv" class="day-large">3</div>
+                    <div id="currentDateYearDiv" class="year-large">2014</div>
+                </div>
+                <div class="prof-container">
+                    <div id="userFullNameDiv" class="prof-name">Debbie Resident</div>
+                    <div class="prof-title">Resident Metrics</div>
+                    <div id="groupNameDiv" class="prof-subtitle">1. Group Cohesion</div>
+                </div>
+                <div  id="expirationDateContainer" class="prof-expire-container">
+                    <div class="datebox-large bg-blue right">
+                        <div id="expirationDateMonthDiv" class="month-large">AUG</div>
+                        <div id="expirationDateDayDiv" class="day-large">4</div>
+                        <div id="expirationDateTimeDiv" class="year-large">2014</div>
+                    </div>
+                    <span class="prof-expire-txt">Evaluation<br/>expires:</span>
+                </div>
+            </div>
+            
+            <div id="summary_listDiv" class="summary-list-container">
+                            </div>
+            
+        </div>
+        <script type="text/javascript">metrics_summary.initialize();</script>
+    </body>
+</html>
