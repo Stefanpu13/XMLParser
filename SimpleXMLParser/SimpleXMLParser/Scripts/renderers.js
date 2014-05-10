@@ -34,7 +34,7 @@
 
         row = functions.createRow(textArea, undefined, textareaClass, returnsAnswerAttribute);
         row.firstChild.setAttribute('colspan',
-            XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
+            objects.QuestionerDataStorage.dataColumnCount);
         functions.insertDynamicContents(doc, row, dynamicTagName);
 
         restoreAnswer(this.question);
@@ -53,7 +53,10 @@
         };
 
         function restoreAnswer(question) {
-            var response = question.Data.Response, restoredArray, restoredResponse, rValue;
+            var response = question.Data.Response,
+                restoredArray,
+                restoredResponse,
+                rValue;
 
             if (response !== null) {
                 restoredArray = [];
@@ -80,7 +83,7 @@
         colSpan = parseInt(colSpanAttribute);
 
         if (colSpanAttribute[0] === '+') {
-            colSpan += XMLRendererFactory.QuestionerDataStorage.dataColumnCount;
+            colSpan += objects.QuestionerDataStorage.dataColumnCount;
         }
 
         row = document.createElement('tr');        
@@ -92,7 +95,7 @@
         repeatlastScale = repeatlastScaleAttribute.getAttribute('value');
         if (repeatlastScale === 'true') {
             cell = document.createElement('td');
-            cell.setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
+            cell.setAttribute('colspan', objects.QuestionerDataStorage.dataColumnCount);
             cell.className = cellClass + ' cell';
             
             row.appendChild(cell);
@@ -110,7 +113,7 @@
 
         columsCountAttribute = doc.getElementsByTagName('column_count')[0];
         if (columsCountAttribute!== undefined) {
-            XMLRendererFactory.QuestionerDataStorage.dataColumnCount = columnsCount =
+            objects.QuestionerDataStorage.dataColumnCount = columnsCount =
             Number(columsCountAttribute.getAttribute('value'));
         }
 
@@ -415,7 +418,7 @@
 
         row = functions.createRow(form, undefined, '', returnsAnswerAttribute);
         row.firstChild.
-            setAttribute('colspan', XMLRendererFactory.QuestionerDataStorage.dataColumnCount);
+            setAttribute('colspan', objects.QuestionerDataStorage.dataColumnCount);
         functions.insertDynamicContents(doc, row, dynamicTagName);
 
         // If question has 'Response'  and 'Response.RValue'

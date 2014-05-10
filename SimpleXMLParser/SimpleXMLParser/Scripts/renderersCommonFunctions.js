@@ -124,7 +124,7 @@ renderersCommon.functions = (function () {
         }
     };
 
-    function insertDynamicSelect(dynamicData, selectElementContainingTableCell, questionId) {
+    function insertDynamicSelect(dynamicData, containingTableCell, questionId) {
         var controlValueContainingTag = document.createElement('control_values'),
             labelContainer;
 
@@ -134,12 +134,12 @@ renderersCommon.functions = (function () {
              "", "", constants.DYNAMIC_SELECT_CLASS_NAME).labelContainer;
 
         // If there is already dynamic select element - remove it.
-        if (selectElementContainingTableCell.lastChild !== selectElementContainingTableCell.firstChild) {
-            selectElementContainingTableCell.
-                removeChild(selectElementContainingTableCell.lastChild);
+        if (containingTableCell.lastChild !== containingTableCell.firstChild) {
+            containingTableCell.
+                removeChild(containingTableCell.lastChild);
         }
 
-        selectElementContainingTableCell.appendChild(labelContainer);
+        containingTableCell.appendChild(labelContainer);
 
         return labelContainer;
     }
@@ -250,16 +250,15 @@ renderersCommon.functions = (function () {
 
                     });
                 }
-
             });
         }
     }
 
     function findLastIndex(array,comparedValue,  predicateFunction) {
         var length = array.length,
-            i = length - 1;
+            i = length;
 
-        for (; i>=0; i--) {
+        while(i--) {
             if (predicateFunction(array[i], comparedValue)) {
                 return i;
             }
