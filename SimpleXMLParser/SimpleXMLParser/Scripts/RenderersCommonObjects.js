@@ -20,7 +20,7 @@ renderersCommon.objects = (function () {
 
         return Calendar;
     })(),
-
+       
         Response = function (id, rValue, rValueInt) {
             this.questionId = id;
             this.RValue = rValue;
@@ -32,7 +32,7 @@ renderersCommon.objects = (function () {
                 this.baseUrl = baseUrl;
             }
 
-            function isProductionEnviroment() {
+            function isDevelopmentEnviroment() {
                 return document.URL.indexOf('//localhost') >= 0;
             }
 
@@ -63,32 +63,13 @@ renderersCommon.objects = (function () {
             DropdownHttpClient.prototype.getAuthenticationToken = function () {
                 var token,
                     user;
-                if (isProductionEnviroment()) {
+                if (isDevelopmentEnviroment()) {
                     return getTestAuthenticationToken();
                 } else {
                     token = localStorage.getItem('AuthorizationCookie');
                     return { Token: token };
                 }
             }
-
-            //DropdownHttpClient.prototype.getTestAuthenticationToken = function getTestAuthenticationToken() {
-            //    var user = {
-            //        UserName: 'demoresident611',
-            //        Password: '222222',
-            //        FacilityId: '150'
-            //    },
-            //        url = 'http://localhost:61008/api/Users/Authenticate';
-
-            //    return $.ajax({
-            //        url: url,
-            //        type: 'post',
-            //        data: JSON.stringify(user),
-            //        contentType: 'application/json',
-            //        error: function (e) {
-            //            console.log(e);
-            //        }
-            //    });
-            //}
 
             DropdownHttpClient.prototype.getDynamicCascadeDropdown =
                 function (url, token, questionId) {
@@ -133,12 +114,42 @@ renderersCommon.objects = (function () {
             }
 
             return rendererManager;
-        })();
+        })(),
+        
+        XMLRenderer = (function () {
+        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc, rowClassName) {
+            this.question = questionObject;
+            this.XMLDoc = XMLDoc;
+            this.convertToHTML = XMLRenderingFunc;
+            this.rowClassName = rowClassName;
+            this.eventListenersList = {};
+        } 
+
+        // function is set to prototype and not copied to each object.
+        XMLRenderer.prototype.convertToHTML = function () { };        
+
+        return XMLRenderer;
+        })(),
+
+         // QuestionerDataStorage is constructor function
+        QuestionerDataStorage = (function () {
+        var dataColumnCount;
+        return {
+            get dataColumnCount() {
+                return dataColumnCount || 4; // As is in original method.
+            },
+            set dataColumnCount(value) {
+                dataColumnCount = value;
+            }
+        }
+    })();
 
     return {
         Response: Response,
         Calendar: Calendar,
         DropdownHttpClient: DropdownHttpClient,
-        XMLScaleRendererManager: XMLScaleRendererManager
+        XMLScaleRendererManager: XMLScaleRendererManager,
+        XMLRenderer: XMLRenderer,
+        QuestionerDataStorage: QuestionerDataStorage
     }
 })()

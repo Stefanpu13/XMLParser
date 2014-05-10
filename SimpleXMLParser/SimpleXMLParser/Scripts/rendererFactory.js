@@ -3,36 +3,8 @@
 /// <reference path="jquery-2.1.0.min.js" />
 // Gets XML renderer based on the type of the XML content. 
 // Different renderers present different strategies to render XML to html.
-var XMLRendererFactory = (function () {
-    var QuestionerDataStorage = (function () {
-        var dataColumnCount;
-        return {
-            get dataColumnCount() {
-                return dataColumnCount || 4; // As is in original method.
-            },
-            set dataColumnCount(value) {
-                dataColumnCount = value;
-            }
-        }
-    })();
-
-    // Constructor function.
-    var XMLRenderer = (function () {
-        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc, rowClassName) {
-            this.question = questionObject;
-            this.XMLDoc = XMLDoc;
-            this.convertToHTML = XMLRenderingFunc;
-            this.rowClassName = rowClassName;
-            this.eventListenersList = {};
-        } 
-
-        // function is set to prototype and not copied to each object.
-        XMLRenderer.prototype.convertToHTML = function () { };        
-
-        return XMLRenderer;
-    })(),
-    // Assosiative array of rendering functions.
-        renderers = {},
+var XMLRendererFactory = (function () {    
+    var renderers = {}, // Assosiative array of rendering functions.
         ROOT_TAG = 'eval_question',        
         EXTERNAL_REF = 'ExternalRef',
         Q_TEXT = 'QText', currentSelectedRenderer;
@@ -51,10 +23,15 @@ var XMLRendererFactory = (function () {
         var questionObject,
             xmlRenderer,
            scaleRowClassName,
-                objects = renderersCommon.objects;
+            objects = renderersCommon.objects,
+            typeOfQuestionString = typeof questionString;
 
         try {
-            questionObject = JSON.parse(questionString);
+            if (typeOfQuestionString === 'string') {
+                questionObject = JSON.parse(questionString);
+            } else {
+                questionObject = questionString;
+            }
         } catch (e) { // Invalid JSON. Possible reasons: unescaped characters(quotes)
             console.log(e.message);
         }
@@ -71,14 +48,14 @@ var XMLRendererFactory = (function () {
         if (objects.XMLScaleRendererManager.isScaleRenderer(displayType)) {
             scaleRowClassName = 'question-' + questionObject.ID;
             xmlRenderer =
-                new XMLRenderer(questionObject, XMLDoc, renderFunc, scaleRowClassName);
+                new objects.XMLRenderer(questionObject, XMLDoc, renderFunc, scaleRowClassName);
 
             if (objects.XMLScaleRendererManager.currentRendererIsScale()) {
                 objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
             }
 
         } else {
-            xmlRenderer = new XMLRenderer(questionObject, XMLDoc, renderFunc);
+            xmlRenderer = new objects.XMLRenderer(questionObject, XMLDoc, renderFunc);
         }
         objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
         objects.XMLScaleRendererManager.currentRendererType = displayType;
@@ -209,7 +186,6 @@ var XMLRendererFactory = (function () {
 
     return {
         addXMLRenderer: addXMLRenderer,
-        makeXMLRenderer: makeXMLRenderer,
-        QuestionerDataStorage: QuestionerDataStorage
+        makeXMLRenderer: makeXMLRenderer        
     }
 })();

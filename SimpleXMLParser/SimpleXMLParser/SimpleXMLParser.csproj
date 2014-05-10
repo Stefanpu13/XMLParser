@@ -67,10 +67,9 @@
     <Content Include="Scripts\rendererFactory.js" />
     <Content Include="Scripts\renderers.js" />
     <Content Include="Scripts\renderersCommonFunctions.js" />
-    <Content Include="Scripts\RenderersCommonObjects.js" />
+    <Content Include="Scripts\renderersCommonObjects.js" />
     <Content Include="Scripts\renderersConstants.js" />
-    <Content Include="Scripts\XMLScaleRendererManager.js" />
-    <Content Include="Styles\Main.css" />
+    <Content Include="Styles\renderer.css" />
     <Content Include="Web.config" />
     <Content Include="Scripts\jquery-2.1.0.min.map" />
   </ItemGroup>
