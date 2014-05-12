@@ -1,0 +1,26 @@
+                    	{
+"ID": 758909,
+"Data": {
+	"ExternalRef": "1",
+	"QTypeID": 139,
+	"QText": "Select the name of the preceptor you evaluating.",	
+	"DTModified": "",
+	"CreatedBy": null,
+	"ModifiedBy": "",
+	"Active": true,
+	"Code": "PE1",
+	"GroupID": null,
+	"SubGroupID": 42073,
+        "Seq": null,
+	"TypeName": "Object_Type_Preceptor",
+	"SubGroupText": "Preceptor Evaluation ",
+	"Scenario": "",
+	"QuestionerID": 4528,
+        "Response": {"questionId":758909,"RValue":"Jason Crain (3 South - Critical Care)","RValueInt":60338},
+	"HasComments": false,
+        "DisplayDefinition":"<eval_question question_type=\"active\" display_type=\"cascade_dropdown\" is_bold=\"false\" label_pattern=\"%%ExternalRef%%|%%QText%%\"><repeat_last_scale value=\"false\" /></eval_question>" 
+		,
+	"IsRequired": false
+	},
+"DynamicData": [{"Key":"1","Value":"Core Class"},{"Key":"2","Value":"Facility Specific Class"},{"Key":"10","Value":"Unit Specific Class"},{"Key":"13","Value":"Health System Class"},{"Key":"14","Value":"E-Learning Event"},{"Key":"11,53","Value":"Specialty: Versant 7.0 Adult Critical Care (Sept 2012)"},{"Key":"11,54","Value":"Specialty: Versant 7.0 Perioperative (Sept 2012)"},{"Key":"11,55","Value":"Specialty: Versant 7.0 Perinatal (Sept 2012)"},{"Key":"11,56","Value":"Specialty: Versant 7.0 Emergency Department (Sept 2012)"},{"Key":"11,57","Value":"Specialty: Versant 7.0 Pediatric ED (Sept 2012)"},{"Key":"11,58","Value":"Specialty: Versant 7.0 Neonatal ICU (Sept 2012)"},{"Key":"11,59","Value":"Specialty: Versant 7.0 Multispecialty (Sept 2012)"},{"Key":"11,60","Value":"Specialty: Versant TR 7.0 Multispecialty (Sept 2012)"},{"Key":"11,61","Value":"Specialty: Versant TR 7.0 Adult Critical Care (Sept 2012)"},{"Key":"11,63","Value":"Specialty: Versant TR 7.0 Emergency Department (Sept 2012)"},{"Key":"11,64","Value":"Specialty: Versant TR 7.0 Neonatal ICU (Sept 2012)"},{"Key":"11,65","Value":"Specialty: Versant TR 7.0 Pediatric ED (Sept 2012)"},{"Key":"11,66","Value":"Specialty: Versant TR 7.0 Perioperative (Sept 2012)"},{"Key":"11,67","Value":"Specialty: Versant TR 7.0 Perinatal (Sept 2012)"},{"Key":"11,69","Value":"Specialty: Versant TR 7.0 Specialty Application (Sept 2012)"},{"Key":"11,70","Value":"Specialty: Versant 7.0 Specialty Application (Sept 2012)"}	
+}

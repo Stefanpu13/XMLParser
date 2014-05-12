@@ -209,15 +209,19 @@ renderersCommon.functions = (function () {
     function attachChangeEventHandlers(selectElements, handlerFunction) {
         var args = arguments;
 
-        selectElements.forEach(function (label) {
+        if (selectElements.forEach) {
+            selectElements.forEach(attachHandler);
+        } else{
+            attachHandler(selectElements);
+        }        
+
+        function attachHandler(label) {
             var selectElem = label.lastChild,                
                 // arguments to 'handlerFunction' are passed to 'attachChangeEventHandlers'
                 argsArray = Array.prototype.slice.call(args, 2);
-            selectElem.addEventListener('change', function (e) {
-                //updateDropDownAnswer(e);
+            selectElem.addEventListener('change', function (e) {                
                 handlerFunction(e, argsArray);
             });
-        });
     }
 
     function updateAnswer(node, row, question) {

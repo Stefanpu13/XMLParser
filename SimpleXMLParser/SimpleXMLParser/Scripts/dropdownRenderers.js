@@ -1,6 +1,8 @@
-﻿/// <reference path="RenderersCommonObjects.js" />
+﻿/// <reference path="renderersConstants.js" />
 /// <reference path="renderersCommonFunctions.js" />
-/// <reference path="jquery-2.1.0.js" />
+/// <reference path="renderersCommonObjects.js" />
+/// <reference path="jquery-2.1.0.min.js" />
+
 var dropdownRenderers = (function () {
    var currentIncompleteRow,
        functions = renderersCommon.functions,
@@ -180,44 +182,31 @@ var dropdownRenderers = (function () {
         var questionId = this.question.ID,
             doc = XMLDoc || this.XMLDoc,
             self = this,
-            skipDropdownRendererRestoringAnswer = true,
-            row = datadropDownRenderer.call(this, doc, skipDropdownRendererRestoringAnswer),
+            skipDropdownRendererAnswerRestore = true,
+            row = datadropDownRenderer.call(this, doc, skipDropdownRendererAnswerRestore),
             selectElement = row.getElementsByTagName('select')[0],
             containingTableCell = selectElement.parentElement.parentElement,
-            cascadeDropdownsDataArray = [];
-
-        // When the visible select element is changed two things(events) happen
-        // 1. The option and answer is updated
-        // 2. Dynamic DDL is requested, displayed/removed, and answer is again updated.
-        // The two events should be fired in particular order.
+            cascadeDropdownsDataArray = ['---Select One---']; // array of 'DynamicData' objects(properties)
 
         selectElement.onchange = updateAnswer;
 
         restoreAnswer();
 
-        return row;
-        // #region Original updateAnswer
+        return row;       
 
-        function updateAnswer(e, selectedOptionIndex) {
+        function updateAnswer(e) {
             var selectElement = e.target,
-                selectedOption = selectElement.options[selectElement.selectedIndex],
-                classType = selectedOption.value,
-                currentAnswer,                
-                httpClient,
-                url;
+                selectedOptionIndex = selectElement.selectedIndex,
+                selectedOption = selectElement.options[selectedOptionIndex],
+                rValue = selectedOption.innerText,
+                rValueInt = selectedOption.value,
+                answer;
 
-            if (selectElement.selectedIndex > 0) {
-
-                httpClient = new objects.DropdownHttpClient(constants.baseUrl);
-                url =
-                httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
-
-                // remove last response - this is response from dynamic dropdown.
-                if (containsDynamicResponse()) {
-                    removeResponse(row, questionId);
-                }
-
-                createCascadeDynamicDropdown(httpClient, url, selectedOptionIndex);
+            if (selectElement.selectedIndex > 0) {                
+                createCascadeDynamicDropdown(selectedOptionIndex, containingTableCell, questionId);
+                
+                answer = new objects.Response(questionId, rValue, rValueInt);                
+                row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(answer));
             } else {
                 // removeAnswer
                 row.removeAttribute(constants.ANSWER_ATTRIBUTE);
@@ -227,73 +216,14 @@ var dropdownRenderers = (function () {
                     removeChild(containingTableCell.lastChild);
             }
         }
-
-        // #endregion
-
-        // #region new updateAnswer
-
-        //function updateAnswer(e) {
-        //    var selectElement = e.target,
-        //        selectedOption = selectElement.options[selectElement.selectedIndex],
-        //        classType = selectedOption.value,
-        //        currentAnswer,
-        //        httpClient,
-        //        url;
-
-        //    if (selectElement.selectedIndex > 0) {
         
-        //    }
-        //}
-
-        // #endregion
-
         function containsDynamicResponse() {
             // the dynamic dropdown has its value set.
             var answers = JSON.parse(row.getAttribute(constants.ANSWER_ATTRIBUTE));
             // 'answers' might not be defined at all.
             return answers && answers.length > 1;
         }
-
-        // #region Original restoreAnswer
-
-        //function restoreAnswer() {
-        //    var restoredResponses = self.question.Data.Response,
-        //        firstAnswer,
-        //        firstAnswerIndex,
-        //        classType,
-        //        httpClient,
-        //        url;
-
-        //    if (restoredResponses !== null) {
-
-        //        if (Object.prototype.toString.call(restoredResponses) === '[object Array]') {
-        //            firstAnswer = restoredResponses[0];
-        //        } else {
-        //            firstAnswer = restoredResponses;
-        //        }
-        //        classType = firstAnswer.RValueInt;
-        //        firstAnswerIndex = functions.findLastIndex(selectElement.childNodes, classType,
-        //            function (currentOption, serachedOptionValue) {
-        //                return currentOption.value === serachedOptionValue;
-        //            });
-        //        // restore first answer
-
-        //        selectElement.selectedIndex = firstAnswerIndex;
-
-        //        // add dynamic select element to row.
-        //        if (selectElement.selectedIndex > 0) {
-        //            httpClient = new objects.DropdownHttpClient(constants.baseUrl);
-        //            url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
-
-        //            createCascadeDynamicDropdown(httpClient, url, restoredResponses);
-        //        }
-        //    }
-        //}
-
-        // #endregion
-
-        // #region New RestoreAnswer
-
+        
         function restoreAnswer() {
             var restoredResponses = self.question.Data.Response,
                 firstAnswer,
@@ -304,134 +234,23 @@ var dropdownRenderers = (function () {
 
             httpClient = new objects.DropdownHttpClient(constants.baseUrl);
             url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
-
-            getCascadeDropdownData(selectElement).done(function () {
-                var x = cascadeDropdownsDataArray.length;
-                if (restoredResponses !== null) {
-
-                    // foreach option get dynamic response and save it in array
-                    // this will be array of arrays
-                }
-            });
-
-            //getOneCacadeDropdown(selectElement.lastChild).
-            //    then(function () {
-            //        var x = cascadeDropdownsDataArray.length;
-            //    });
-
         }
 
-        // #endregion
+        function createCascadeDynamicDropdown(selectedOptionIndex, containingTableCell, questionId) {
+            var dynamicData = cascadeDropdownsDataArray[selectedOptionIndex],
+                labelContainer =
+                functions.insertDynamicSelect(dynamicData, containingTableCell, questionId);
 
-        function getOneCacadeDropdown(option) {
-            var classType = option.value,
-                     httpClient = new objects.DropdownHttpClient(constants.baseUrl),
-                     url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
+            functions.attachChangeEventHandlers(labelContainer,
+                function (e, row, questionId) {
+                    var selectElement = e.target,
+                        selectedOption = selectElement[selectElement.selectedIndex],
+                        rValue = selectedOption.innerText,
+                        rValueInt = selectedOption.value,
+                        answer = new objects.Response(questionId, rValue, rValueInt);
 
-            if (classType) {
-              return $.when(httpClient.getAuthenticationToken()).
-                then(function (data) {              
-                    var token = data.Token;
-
-                    return httpClient.
-                         getDynamicCascadeDropdown(url, token).
-                         success(function (dynamicData) {
-                             cascadeDropdownsDataArray.push(dynamicData);
-                         });
-                });
-            } else {
-                return $.when();
-            }
-        }
-
-        function getCascadeDropdownData(selectElement) {
-            return $.when(gettAllCascadeDropdowns()) ;
-        }
-
-        function gettAllCascadeDropdowns() {
-            var i = 1,
-                  classType,
-                  httpClient,
-                  url,
-                  childNodes = selectElement.childNodes,
-                  length = childNodes.length;
-
-            httpClient = new objects.DropdownHttpClient(constants.baseUrl);
-
-
-            for (; i < length; i++) {
-                classType = selectElement.childNodes.item(i).value;
-                url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
-
-                $.when(httpClient.getAuthenticationToken()).then(
-                    function (data) {
-                        return addSingleCascadeDropDown(data, httpClient, url);
-                    }
-                    );
-            }
-        }
-
-        
-
-        function addSingleCascadeDropDown(data, httpClient, url) {
-            var token = data.Token;
-
-            return httpClient.
-                 getDynamicCascadeDropdown(url, token).
-                 success(function (dynamicData) {
-                     cascadeDropdownsDataArray.push(dynamicData);
-                 });
-        }
-
-        function createCascadeDynamicDropdown(httpClient, url, restoredResponses) {
-            // Create defered object - this is for both development enviroment
-            // and production enviroment.
-            $.when(httpClient.getAuthenticationToken()).
-                then(function (data) {
-                    httpClient.
-                        getDynamicCascadeDropdown(url, data.Token).
-                        success(function (dynamicData) {
-                            onGetDynamicCascadeDropdownSuccess(dynamicData, restoredResponses);
-                        });
-                });
-        }
-
-        function onGetDynamicCascadeDropdownSuccess(dynamicData, restoredResponses) {
-            var containingLabel =
-                        functions.insertDynamicSelect(dynamicData, containingTableCell, questionId),
-                        selectElementsArray = [containingLabel],
-                        dynamicDropdownAnswer,
-                        dynamicDropdownSelectedIndex,
-                        dynamicSelectElement = containingLabel.firstChild;
-
-            if (restoredResponses) {
-                row.setAttribute(constants.ANSWER_ATTRIBUTE,
-                    JSON.stringify(restoredResponses));
-
-                if (restoredResponses.length > 1) {
-                    restoreDynamicDropdownAnswer();
-                }
-            }
-
-            functions.
-                attachChangeEventHandlers(selectElementsArray, updateDropDownAnswer,
-                row, questionId, undefined, containsDynamicResponse);
-
-            function restoreDynamicDropdownAnswer() {
-                dynamicDropdownAnswer =
-             restoredResponses[restoredResponses.length - 1];
-
-                dynamicDropdownSelectedIndex =
-                    functions.findLastIndex(dynamicSelectElement.childNodes,
-                    dynamicDropdownAnswer.RValueInt,
-                    function (currentOption, searchedClassType) {
-                        return currentOption.value === searchedClassType;
-                    });
-
-                if (dynamicDropdownSelectedIndex > -1) {
-                    containingLabel.firstChild.selectedIndex = dynamicDropdownSelectedIndex;
-                }
-            }
+                    row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(answer));
+                }, row, questionId);
         }
     }
 
