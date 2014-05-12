@@ -53,6 +53,7 @@ renderersCommon.objects = (function () {
                         console.log(e);
                     }
                 });
+
             }
 
             DropdownHttpClient.prototype.getClassTypeUrl = function (displayDef, classType) {

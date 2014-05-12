@@ -76,7 +76,8 @@ renderersCommon.functions = (function () {
             if (elem.innerElements !== undefined && elem.innerElements.length > 0) {
                 elem.innerElements.forEach(function (innerElem) {
                     var innerElement = createElement(innerElem);
-                    domElement.appendChild(innerElement);
+                    //domElement.appendChild(innerElement);
+                    parseCellContent(elem, innerElem);
                 });
             }
             cell.appendChild(domElement);
@@ -210,18 +211,20 @@ renderersCommon.functions = (function () {
         var args = arguments;
 
         if (selectElements.forEach) {
-            selectElements.forEach(attachHandler);
-        } else{
-            attachHandler(selectElements);
-        }        
+            selectElements.forEach(attachChangeEventHandler);
+        } else {
+            attachChangeEventHandler(selectElements);
+        }
 
-        function attachHandler(label) {
+        function attachChangeEventHandler(label) {
             var selectElem = label.lastChild,                
                 // arguments to 'handlerFunction' are passed to 'attachChangeEventHandlers'
                 argsArray = Array.prototype.slice.call(args, 2);
-            selectElem.addEventListener('change', function (e) {                
+            selectElem.addEventListener('change', function (e) {
+                //updateDropDownAnswer(e);
                 handlerFunction(e, argsArray);
             });
+        }
     }
 
     function updateAnswer(node, row, question) {

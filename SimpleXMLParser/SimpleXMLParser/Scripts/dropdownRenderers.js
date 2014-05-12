@@ -12,7 +12,7 @@ var dropdownRenderers = (function () {
        monthSelectClass = 'months-select';
 
 
-    function dropDownRenderer(XMLDoc, skipRestoringAnswer) {
+   function dropDownRenderer(XMLDoc, skipRestoringAnswer, skipAttachingChangeEventHandlers) {
         // 'this' - refers to the rendering object created in 
         // 'addRenderer' method in 'rendererFactory'.
         var doc = XMLDoc || this.XMLDoc, row,
@@ -51,9 +51,12 @@ var dropdownRenderers = (function () {
             restoreAllAnswers(selectElements);
         }
 
-        // Arguments after  the function 'updateDropDownAnswer' are passed as arguments to it.
-        functions.attachChangeEventHandlers(selectElements, updateDropDownAnswer,
+       // Arguments after  the function 'updateDropDownAnswer' are passed as arguments to it.
+        if (!skipAttachingChangeEventHandlers) {
+            functions.attachChangeEventHandlers(selectElements, updateDropDownAnswer,
             row, questionId, dropDownLabelAttribute);
+        }
+        
 
         function addFirstSelectElement(colSpan, questionId) {
             row = functions.createRow(selectElements, undefined,
@@ -166,7 +169,7 @@ var dropdownRenderers = (function () {
         return row;
     }
 
-    function datadropDownRenderer(XMLDoc, skipRrestoringAnswer) {
+    function datadropDownRenderer(XMLDoc, skipRrestoringAnswer, skipAttachingChangeEventHandlers) {
         var doc = XMLDoc || this.XMLDoc,
             controlValueContainingTag = document.createElement('control_values'),
             dynamicData = this.question.DynamicData,
@@ -175,7 +178,7 @@ var dropdownRenderers = (function () {
         functions.insertDynamicDataControlTags(controlValueContainingTag, dynamicData);
 
         doc.firstChild.appendChild(controlValueContainingTag);
-        return dropDownRenderer.call(this, doc, skipRrestoringAnswer);
+        return dropDownRenderer.call(this, doc, skipRrestoringAnswer, skipAttachingChangeEventHandlers);
     };
 
     function cascadedropDownRenderer(XMLDoc) {
@@ -183,14 +186,17 @@ var dropdownRenderers = (function () {
             doc = XMLDoc || this.XMLDoc,
             self = this,
             skipDropdownRendererAnswerRestore = true,
-            row = datadropDownRenderer.call(this, doc, skipDropdownRendererAnswerRestore),
+            skipAttachingChangeEventHandlers = true,
+            row = datadropDownRenderer.call(this, doc, skipDropdownRendererAnswerRestore, skipAttachingChangeEventHandlers),
             selectElement = row.getElementsByTagName('select')[0],
             containingTableCell = selectElement.parentElement.parentElement,
-            cascadeDropdownsDataArray = ['---Select One---']; // array of 'DynamicData' objects(properties)
+            // array of 'DynamicData' objects(properties)
+            cascadeDropdownsDataArray =
+            Array.prototype.push.apply(['--- Select Option ---'], this.question.CascadingDynamicData);
 
         selectElement.onchange = updateAnswer;
 
-        restoreAnswer();
+        restoreAnswer(selectElement);
 
         return row;       
 
@@ -202,18 +208,21 @@ var dropdownRenderers = (function () {
                 rValueInt = selectedOption.value,
                 answer;
 
-            if (selectElement.selectedIndex > 0) {                
+            if (selectElement.selectedIndex > 0) {
+
                 createCascadeDynamicDropdown(selectedOptionIndex, containingTableCell, questionId);
-                
-                answer = new objects.Response(questionId, rValue, rValueInt);                
+
+                answer = new objects.Response(questionId, rValue, rValueInt);
                 row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(answer));
             } else {
                 // removeAnswer
                 row.removeAttribute(constants.ANSWER_ATTRIBUTE);
 
-                // remove dynamic dropdown
-                containingTableCell.
-                    removeChild(containingTableCell.lastChild);
+                if (containingTableCell.childNodes.length > 1) {
+                    // remove dynamic dropdown if present
+                    containingTableCell.
+                        removeChild(containingTableCell.lastChild);
+                }
             }
         }
         
@@ -224,16 +233,125 @@ var dropdownRenderers = (function () {
             return answers && answers.length > 1;
         }
         
-        function restoreAnswer() {
-            var restoredResponses = self.question.Data.Response,
+        function restoreAnswer(selectElement) {
+            var restoredResponse = self.question.Data.Response,
                 firstAnswer,
                 firstAnswerIndex,
                 classType,
-                httpClient,
+                httpClient = new objects.DropdownHttpClient(constants.baseUrl),
                 url;
+            
+            //getAllDynamicData().
+            //    then(getDropdownAndDynamicDropdownIndeces).
+            //    then(setRootDropdownSelectedOption).
+            //    then(setDynamicDropdownSelectedOption).
+            //    then(setRowAnswerAttribute);
 
-            httpClient = new objects.DropdownHttpClient(constants.baseUrl);
-            url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
+
+            // TODO: Remove promise wrapper.
+            getDropdownAndDynamicDropdownIndeces().
+                then(setDynamicDropdownSelectedOption).
+                then(setRootDropdownSelectedOption).
+                then(setRowAnswerAttribute);
+                    
+            //function getAllDynamicData() {
+            //    return $.when(httpClient.getAuthenticationToken()).done(function (data) {
+            //        var token = data.Token;
+            //        localStorage.setItem('AuthorizationCookie', token);
+
+            //        $.when(constants.forEach.call(selectElement.childNodes, function (currentOption, index) {
+            //            classType = currentOption.value;
+            //            if (classType) { // first option has no value  - '---Select Option---'
+
+            //                url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
+
+            //                httpClient.getDynamicCascadeDropdown(url, token, questionId).
+            //                    then(function (dynamicData) {
+            //                        cascadeDropdownsDataArray.push(dynamicData);
+            //                    });
+            //            }
+            //        }));
+            //    });
+            //}
+
+            function getDropdownAndDynamicDropdownIndeces() {
+                var index = cascadeDropdownsDataArray.length,
+                    dropDownSelectedOptionIndex,
+                    dynamicDropDownSelectedOptionIndex = 0,
+                    rootSelectChildren = selectElement.childNodes,
+                    responseIndex;
+
+                if (restoredResponse !== null) {
+                    while (index--) {
+                            responseIndex =
+                            getDynamicDataResponseIndex(cascadeDropdownsDataArray[index], restoredResponse);
+
+                        if (responseIndex > 0) {
+                            dynamicDropDownSelectedOptionIndex = responseIndex;
+                            dropDownSelectedOptionIndex = index;
+                            break;
+                        }
+                    }
+
+                    // the response is not found in dynamicDropdown so it is in the root dropdown.
+                    if (index === -1) {
+                        index = rootSelectChildren.length;
+
+                        while (index--) {
+                            if (rootSelectChildren[index].value === restoredResponse.RValueInt) {
+                                dropDownSelectedOptionIndex = index;
+                                break;
+                            }
+                        }
+                    }                   
+                }
+
+                return $.when({
+                    dropDownSelectedOptionIndex: dropDownSelectedOptionIndex,
+                    dynamicDropDownSelectedOptionIndex: dynamicDropDownSelectedOptionIndex
+                    });
+            }
+
+            function setRootDropdownSelectedOption(indecesContainer) {
+                var dropDownSelectedOptionIndex = indecesContainer.dropDownSelectedOptionIndex;
+
+                selectElement.selectedIndex = dropDownSelectedOptionIndex;
+                return $.when(indecesContainer);
+            }
+
+            function setDynamicDropdownSelectedOption(indecesContainer) {
+                var dropDownSelectedOptionIndex = indecesContainer.dropDownSelectedOptionIndex,
+                    dynamicDropDownSelectedOptionIndex =
+                    indecesContainer.dynamicDropDownSelectedOptionIndex,
+                    skipCreatingCascadeDropDown = true,
+                    labelContainer,
+                    dynamicSelectElement;
+
+                if (dropDownSelectedOptionIndex > 0) {
+                    labelContainer = createCascadeDynamicDropdown(dropDownSelectedOptionIndex,
+                    containingTableCell, questionId);
+                    dynamicSelectElement = labelContainer.firstChild;
+                    dynamicSelectElement.selectedIndex = dynamicDropDownSelectedOptionIndex;
+                }
+              
+                return $.when();
+            }
+
+            function getDynamicDataResponseIndex(dynamicData, restoredResponse) {
+                var index = functions.findLastIndex(dynamicData, restoredResponse,
+                    function (keyValuePair, response) {
+                        return keyValuePair.Key === response.RValueInt &&
+                            keyValuePair.Value === response.RValue;
+                    });
+
+                return index;
+            }
+
+            function setRowAnswerAttribute() {
+                if (restoredResponse !== null) {                    
+                    row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(restoredResponse));
+                }
+            }
         }
 
         function createCascadeDynamicDropdown(selectedOptionIndex, containingTableCell, questionId) {
@@ -242,15 +360,27 @@ var dropdownRenderers = (function () {
                 functions.insertDynamicSelect(dynamicData, containingTableCell, questionId);
 
             functions.attachChangeEventHandlers(labelContainer,
-                function (e, row, questionId) {
-                    var selectElement = e.target,
-                        selectedOption = selectElement[selectElement.selectedIndex],
+                function (e, args) {
+                    var dynamicSelectElement = e.target,
+                        row = args[0],
+                        questionId = args[1],
+                        selectedOptionIndex = dynamicSelectElement.selectedIndex,
+                        selectedOption = dynamicSelectElement[selectedOptionIndex],
                         rValue = selectedOption.innerText,
                         rValueInt = selectedOption.value,
-                        answer = new objects.Response(questionId, rValue, rValueInt);
+                        answer;
 
+                    if (selectedOptionIndex === 0) {
+                        selectedOption = selectElement[selectElement.selectedIndex];
+                        rValue = selectedOption.innerText;
+                        rValueInt = selectedOption.value;
+                    } 
+
+                    answer = new objects.Response(questionId, rValue, rValueInt);
                     row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(answer));
                 }, row, questionId);
+
+            return labelContainer;
         }
     }
 

@@ -131,32 +131,58 @@
     }
 
     function radioGroupRenderer(XMLDoc) {
-        var doc = XMLDoc || this.XMLDoc, controlValues, controlValuesRow,
-        row, cellContent, lines, i = 0, answers, innerTableRadioCellClass,
-        innerTableClass, labelPatternClass = 'label-cell', columns, question = this.question,
-        dynamicTagName = 'column', innerTable, scales, innerTableLabelClass = undefined,
-        returnsAnswerAttribute = 'required';
+        var doc = XMLDoc || this.XMLDoc,
+            controlValues,
+            controlValuesRow,
+            row,
+            cellContent,
+            lines,
+            i = 0,
+            answers,
+            innerTableRadioCellClass,
+            innerTableClass,
+            labelPatternClass = 'label-cell',
+            columns,
+            question = this.question,
+            dynamicTagName = 'column',
+            innerTable,
+            scales,
+            innerTableLabelClass = undefined,
+            returnsAnswerAttribute = 'required',
+            labelDivWrapperClass = 'radio-label-wrapper',
+            radioCellClass;
 
         controlValues = doc.getElementsByTagName('control_value');
         lines = doc.getElementsByTagName('line');
         cellContent = {
-            elements: [{
-                type: 'label',
-                attributes: [{
-                    name: 'class',
-                    value: 'radio-label'
-                }],
-                innerElements: [{
-                    type: 'input',
+            elements: [
+                {
+                    type: 'label',
                     attributes: [{
-                        name: 'type',
-                        value: 'radio'
-                    }, {
-                        name: 'name',
-                        value: 'radio-' + question.ID
+                        name: 'class',
+                        value: 'radio-label'
+                    }],
+                    innerElements: [{
+                        type: 'input',
+                        attributes: [{
+                            name: 'type',
+                            value: 'radio'
+                        }, {
+                            name: 'name',
+                            value: 'radio-' + question.ID
+                        }]
                     }]
                 }]
-            }]
+        };
+
+        var x = {
+            type: 'div',
+            attributes: [{
+                name: 'class',
+                value: 'radio-label-wrapper'
+            }],
+            innerElements: []
+
         };
         //If true,  multiple rows to be inserted. Use table and again insert single row.
         if (lines.length) {
@@ -171,6 +197,8 @@
         row = functions.createRow(innerTable || controlValues,
             cellContent, innerTableClass || radioCellClass,
             returnsAnswerAttribute);
+
+        //functions.wrapLabelsWithDivs(row, labelDivWrapperClass);
 
         functions.insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
 
