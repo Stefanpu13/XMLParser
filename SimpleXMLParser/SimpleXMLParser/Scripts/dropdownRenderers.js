@@ -4,23 +4,27 @@
 /// <reference path="jquery-2.1.0.min.js" />
 
 var dropdownRenderers = (function () {
-   var currentIncompleteRow,
-       functions = renderersCommon.functions,
-       objects = renderersCommon.objects,
-       constants = renderersCommon.constants,
-       yearSelectClass = 'years-select',
-       monthSelectClass = 'months-select';
+    var currentIncompleteRow,
+        functions = renderersCommon.functions,
+        objects = renderersCommon.objects,
+        constants = renderersCommon.constants,
+        yearSelectClass = 'years-select',
+        monthSelectClass = 'months-select';
 
 
-   function dropDownRenderer(XMLDoc, skipRestoringAnswer, skipAttachingChangeEventHandlers) {
+    function dropDownRenderer(XMLDoc, skipRestoringAnswer, skipAttachingChangeEventHandlers) {
         // 'this' - refers to the rendering object created in 
         // 'addRenderer' method in 'rendererFactory'.
-        var doc = XMLDoc || this.XMLDoc, row,
-            cellContent, returnsAnswerAttribute = 'required',
+        var doc = XMLDoc || this.XMLDoc,
+            row,
+            returnsAnswerAttribute = 'required',
             responseArray = [],
-            dynamicTagName = 'column', incompleteRowTag, incompleteRowTagValue,
-            questionObject = this.question, questionId = questionObject.ID,
-            selectElements, currentSelectedOption,
+            dynamicTagName = 'column', incompleteRowTag,
+            incompleteRowTagValue,
+            questionObject = this.question,
+            questionId = questionObject.ID,
+            selectElements,
+            currentSelectedOption,
             dropDownLabelAttribute,
             createSelectElementsResult,
             colSpanAdjust = 2; // As used in original dorpDown renderer
@@ -51,12 +55,11 @@ var dropdownRenderers = (function () {
             restoreAllAnswers(selectElements);
         }
 
-       // Arguments after  the function 'updateDropDownAnswer' are passed as arguments to it.
+        // Arguments after  the function 'updateDropDownAnswer' are passed as arguments to it.
         if (!skipAttachingChangeEventHandlers) {
             functions.attachChangeEventHandlers(selectElements, updateDropDownAnswer,
             row, questionId, dropDownLabelAttribute);
         }
-        
 
         function addFirstSelectElement(colSpan, questionId) {
             row = functions.createRow(selectElements, undefined,
@@ -191,9 +194,9 @@ var dropdownRenderers = (function () {
             selectElement = row.getElementsByTagName('select')[0],
             containingTableCell = selectElement.parentElement.parentElement,
             // array of 'DynamicData' objects(properties)
-            cascadeDropdownsDataArray =
-            Array.prototype.push.apply(['--- Select Option ---'], this.question.CascadingDynamicData);
+            cascadeDropdownsDataArray = ['--- Select Option ---'];
 
+        cascadeDropdownsDataArray.push.apply(cascadeDropdownsDataArray, this.question.CascadingDynamicData);
         selectElement.onchange = updateAnswer;
 
         restoreAnswer(selectElement);
@@ -235,95 +238,62 @@ var dropdownRenderers = (function () {
         
         function restoreAnswer(selectElement) {
             var restoredResponse = self.question.Data.Response,
-                firstAnswer,
-                firstAnswerIndex,
-                classType,
-                httpClient = new objects.DropdownHttpClient(constants.baseUrl),
-                url;
+                indeces;
             
-            //getAllDynamicData().
-            //    then(getDropdownAndDynamicDropdownIndeces).
-            //    then(setRootDropdownSelectedOption).
-            //    then(setDynamicDropdownSelectedOption).
-            //    then(setRowAnswerAttribute);
-
-
-            // TODO: Remove promise wrapper.
-            getDropdownAndDynamicDropdownIndeces().
-                then(setDynamicDropdownSelectedOption).
-                then(setRootDropdownSelectedOption).
-                then(setRowAnswerAttribute);
-                    
-            //function getAllDynamicData() {
-            //    return $.when(httpClient.getAuthenticationToken()).done(function (data) {
-            //        var token = data.Token;
-            //        localStorage.setItem('AuthorizationCookie', token);
-
-            //        $.when(constants.forEach.call(selectElement.childNodes, function (currentOption, index) {
-            //            classType = currentOption.value;
-            //            if (classType) { // first option has no value  - '---Select Option---'
-
-            //                url = httpClient.getClassTypeUrl(self.question.Data.DisplayDefinition, classType);
-
-            //                httpClient.getDynamicCascadeDropdown(url, token, questionId).
-            //                    then(function (dynamicData) {
-            //                        cascadeDropdownsDataArray.push(dynamicData);
-            //                    });
-            //            }
-            //        }));
-            //    });
-            //}
+            indeces = getDropdownAndDynamicDropdownIndeces();
+            setDynamicDropdownSelectedOption(indeces);
+            setRootDropdownSelectedOption(indeces);
+            setRowAnswerAttribute();
 
             function getDropdownAndDynamicDropdownIndeces() {
-                var index = cascadeDropdownsDataArray.length,
-                    dropDownSelectedOptionIndex,
+                var length = cascadeDropdownsDataArray.length,
+                    i = 1,
+                    dropDownSelectedOptionIndex = 0,
                     dynamicDropDownSelectedOptionIndex = 0,
                     rootSelectChildren = selectElement.childNodes,
                     responseIndex;
 
                 if (restoredResponse !== null) {
-                    while (index--) {
-                            responseIndex =
-                            getDynamicDataResponseIndex(cascadeDropdownsDataArray[index], restoredResponse);
+                    for (; i < length; i += 1) {
+                        responseIndex =
+                        getDynamicDataResponseIndex(cascadeDropdownsDataArray[i].Value, restoredResponse);
 
                         if (responseIndex > 0) {
                             dynamicDropDownSelectedOptionIndex = responseIndex;
-                            dropDownSelectedOptionIndex = index;
+                            dropDownSelectedOptionIndex = i;
                             break;
                         }
                     }
 
                     // the response is not found in dynamicDropdown so it is in the root dropdown.
-                    if (index === -1) {
-                        index = rootSelectChildren.length;
+                    if (i === length) {
+                        i = rootSelectChildren.length;
 
-                        while (index--) {
-                            if (rootSelectChildren[index].value === restoredResponse.RValueInt) {
-                                dropDownSelectedOptionIndex = index;
+                        while (i--) {
+                            if (rootSelectChildren[i].value === restoredResponse.RValueInt) {
+                                dropDownSelectedOptionIndex = i;
                                 break;
                             }
                         }
-                    }                   
+                    }
                 }
 
-                return $.when({
+                return {
                     dropDownSelectedOptionIndex: dropDownSelectedOptionIndex,
                     dynamicDropDownSelectedOptionIndex: dynamicDropDownSelectedOptionIndex
-                    });
+                };
             }
 
             function setRootDropdownSelectedOption(indecesContainer) {
                 var dropDownSelectedOptionIndex = indecesContainer.dropDownSelectedOptionIndex;
 
                 selectElement.selectedIndex = dropDownSelectedOptionIndex;
-                return $.when(indecesContainer);
             }
 
             function setDynamicDropdownSelectedOption(indecesContainer) {
                 var dropDownSelectedOptionIndex = indecesContainer.dropDownSelectedOptionIndex,
                     dynamicDropDownSelectedOptionIndex =
                     indecesContainer.dynamicDropDownSelectedOptionIndex,
-                    skipCreatingCascadeDropDown = true,
                     labelContainer,
                     dynamicSelectElement;
 
@@ -333,8 +303,6 @@ var dropdownRenderers = (function () {
                     dynamicSelectElement = labelContainer.firstChild;
                     dynamicSelectElement.selectedIndex = dynamicDropDownSelectedOptionIndex;
                 }
-              
-                return $.when();
             }
 
             function getDynamicDataResponseIndex(dynamicData, restoredResponse) {
@@ -348,14 +316,14 @@ var dropdownRenderers = (function () {
             }
 
             function setRowAnswerAttribute() {
-                if (restoredResponse !== null) {                    
+                if (restoredResponse !== null) {
                     row.setAttribute(constants.ANSWER_ATTRIBUTE, JSON.stringify(restoredResponse));
                 }
             }
         }
 
         function createCascadeDynamicDropdown(selectedOptionIndex, containingTableCell, questionId) {
-            var dynamicData = cascadeDropdownsDataArray[selectedOptionIndex],
+            var dynamicData = cascadeDropdownsDataArray[selectedOptionIndex].Value,
                 labelContainer =
                 functions.insertDynamicSelect(dynamicData, containingTableCell, questionId);
 

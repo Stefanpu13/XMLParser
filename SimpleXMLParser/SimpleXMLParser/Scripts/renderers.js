@@ -170,20 +170,14 @@
                         }, {
                             name: 'name',
                             value: 'radio-' + question.ID
+                        }, {
+                            name: 'class',
+                            value:'radio-btn'
                         }]
                     }]
                 }]
         };
-
-        var x = {
-            type: 'div',
-            attributes: [{
-                name: 'class',
-                value: 'radio-label-wrapper'
-            }],
-            innerElements: []
-
-        };
+  
         //If true,  multiple rows to be inserted. Use table and again insert single row.
         if (lines.length) {
             initialiseInnerTableClasses();

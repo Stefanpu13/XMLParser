@@ -20,5 +20,5 @@ renderersCommon.constants = {
     DYNAMIC_SELECT_CLASS_NAME: 'dynamic-select',
     // #endregion        
     forEach: Array.prototype.forEach,
-    baseUrl: (utils && utils.baseServiceAddress && utils.baseServiceAddress()) || 'http://localhost:61008/api/'   
+    baseUrl: (utils && utils.baseServiceAddress && utils.baseServiceAddress()) || 'http://localhost:61008/api/'
 };

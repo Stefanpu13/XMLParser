@@ -76,8 +76,8 @@ renderersCommon.functions = (function () {
             if (elem.innerElements !== undefined && elem.innerElements.length > 0) {
                 elem.innerElements.forEach(function (innerElem) {
                     var innerElement = createElement(innerElem);
-                    //domElement.appendChild(innerElement);
-                    parseCellContent(elem, innerElem);
+                    domElement.appendChild(innerElement);
+                    //parseCellContent(elem, innerElem);
                 });
             }
             cell.appendChild(domElement);

@@ -21,8 +21,13 @@
 }
 .radio-cell {
     background-color:white; 
-    text-align:center;
+    text-align:center;   
 }
+
+.radio-btn {
+    width:60%;
+}
+
 .vertical-radio-cell, .radio-table-cell{
     display: block;
     text-align:left;  
