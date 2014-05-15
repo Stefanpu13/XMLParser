@@ -32,7 +32,8 @@
         }
         textArea.setAttribute('cols', initialTextareaColsCount);
 
-        row = functions.createRow(textArea, undefined, textareaClass, returnsAnswerAttribute);
+        row = functions.createRow(textArea, undefined, textareaClass, returnsAnswerAttribute,
+            constants.ROW_CLASS + ' ' + constants.TEXT_ROW_CLASS);
         row.firstChild.setAttribute('colspan',
             objects.QuestionerDataStorage.dataColumnCount);
         functions.insertDynamicContents(doc, row, dynamicTagName);
@@ -40,7 +41,10 @@
         restoreAnswer(this.question);
 
         textArea.onchange = function updateAnswer() {
-            var text = textArea.value, response, responseArray;
+            var text = textArea.value.trim(),
+                response,
+                responseArray;
+
             if (text === '') {
                 row.removeAttribute(constants.ANSWER_ATTRIBUTE);
             } else {
@@ -88,6 +92,7 @@
 
         row = document.createElement('tr');        
         row.setAttribute(constants.RETURN_ANSWER, returnsAnswerAttribute);
+        row.className = constants.ROW_CLASS + ' ' + constants.LABEL_ROW_CLASS;
         functions.insertDynamicContents(doc, row, 'row', cellClass);
         row.firstChild.setAttribute('colspan', colSpan);
 
@@ -106,10 +111,17 @@
 
     function scaleRenderer(XMLDoc) {
         var doc = XMLDoc || this.XMLDoc,
-        rows = [], row, cell, lines, columns,
-        linesCount, columsCountAttribute, columnsCount, i = 0, j = 0,
+        rows = [],
+        row,
+        cell,
+        columns,        
+        columsCountAttribute,
+        columnsCount,
+        i = 0,
         returnsAnswerAttribute = 'none';
-        lines = doc.getElementsByTagName('line'), linesCount = lines.length;
+        lines = doc.getElementsByTagName('line'),
+        linesCount = lines.length
+        questionId = this.question.ID;
 
         columsCountAttribute = doc.getElementsByTagName('column_count')[0];
         if (columsCountAttribute!== undefined) {
@@ -121,8 +133,8 @@
         for (; i < linesCount; i++) {
             columns = lines[i].getElementsByTagName('column');
             if (columns && columns.length) {
-                row = functions.createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute);
-                row.className = this.rowClassName;
+                row = functions.createRow(columns, undefined, 'scale-cell', returnsAnswerAttribute,
+                    'question-' + questionId + ' ' + constants.ROW_CLASS + ' ' + constants.SCALE_ROW_CLASS);
                 rows.push(row);
             }
         }
@@ -190,7 +202,9 @@
 
         row = functions.createRow(innerTable || controlValues,
             cellContent, innerTableClass || radioCellClass,
-            returnsAnswerAttribute);
+            returnsAnswerAttribute, constants.ROW_CLASS + ' ' + constants.RADIO_ROW_CLASS);
+
+        setRowAttributes();
 
         //functions.wrapLabelsWithDivs(row, labelDivWrapperClass);
 
@@ -207,6 +221,7 @@
                     scaleCell.className = 'inner-table-scale-cell cell';
                 });
                 table.appendChild(scale);
+                scale.className = constants.INNER_TABLE_SCALE_ROW;
             });
             controlValuesRow = functions.createRow(controlValues, cellContent, innerTableRadioCellClass);
 
@@ -220,31 +235,54 @@
             innerTableClass = 'radio-table-cell';
         }
 
+        function setRowAttributes() {
+            row.setAttribute(constants.DATA_SCALEID,
+               'question-' + objects.dynamicScaleManager.CurrentScaleQuestionId);
+        }
+
         return row;
     }
 
     function verticalGroupRenderer(XMLDoc) {
-        var doc = this.XMLDoc || XMLDoc, controlValues, controlValue,
-        row, cellContent, lines, controlValuesCount, i = 0, radioCellClass = 'vertical-radio-cell',
-        columns, question = this.question, dynamicTagName = 'row', splitValue = false,
-        innerTableLabelClass = 'vertical-radio-label', innerTable, returnsAnswerAttribute = 'required',
-        answers;
+        var doc = this.XMLDoc || XMLDoc,
+            controlValues,
+            controlValue,
+            row,
+            cellContent,
+            lines,
+            controlValuesCount,
+            i = 0,
+            radioCellClass = 'vertical-radio-cell',
+            columns,
+            question = this.question,
+            dynamicTagName = 'row',
+            splitValue = false,
+            innerTableLabelClass = 'vertical-radio-label',
+            innerTable,
+            returnsAnswerAttribute = 'required',
+            answers;
 
         // cellContent is a 'label' tag with <input type=radio>
         cellContent = {
-            elements: [{
-                type: 'label',
-                innerElements: [{
+            rowType: constants.VERTICAL_GROUP_CELL_CONTENT_TYPE,
+            questionId: question.ID,
+            elements: [
+                {                    
                     type: 'input',
-                    attributes: [{
-                        name: 'type',
-                        value: 'radio'
-                    }, {
-                        name: 'name',
-                        value: 'vertical-radio-' + question.ID
-                    }]
+                    attributes: [
+                        {
+                            name: 'type',
+                            value:'radio'
+                        },
+                        {
+                            name: 'name',
+                            value: 'vertical-radio-' + question.ID
+                        }]
+                },
+                {
+                    type: 'label',
+                    attributes:[]
                 }]
-            }]
         };
 
         controlValues = doc.getElementsByTagName('control_value');
@@ -259,7 +297,7 @@
                 controlValueTag;
             // First part of split to be converted into text, second part - into radio button.
             if (splitValue === true) {
-                radioCellClass = 'horizontal-radio-cell';
+                radioCellClass = 'horizontal-radio-cell no-wrap';
                 populateInnerTable(innerTable);                
             }
 
@@ -277,7 +315,7 @@
         });
 
         row = functions.createRow(innerTable || controlValues, cellContent, radioCellClass,
-            returnsAnswerAttribute);
+            returnsAnswerAttribute, constants.ROW_CLASS + ' ' + constants.VERTICAL_GROUP_ROW_CLASS);
         functions.insertDynamicContents(doc, row, dynamicTagName, innerTableLabelClass);
 
         functions.attachRowFunctionality(row, innerTable, question);
@@ -286,32 +324,40 @@
     }
 
     function dateRenderer(XMLDoc) {
-        var doc = XMLDoc || this.XMLDoc, question = this.question, dynamicTagName = 'column',
-            response = question.Data.Response, row,
-            calendar = new objects.Calendar(), responseDate, FORM_ID = 'calendar', DAY_SELECT_ID = 'day',
-            MONTH_SELECT_ID = 'month', YEAR_SELECT_ID = 'year', returnsAnswerAttribute = 'required';
-        // #region calendar HTML elements.
-        form = document.createElement('form'),
-        daySelect = document.createElement('select'),
-        monthSelect = document.createElement('select'),
-        yearSelect = document.createElement('select'),
-        dayLabel = document.createElement('label'),
-        monthLabel = document.createElement('label'),
-        yearLabel = document.createElement('label');
-        // #endregion
+        var doc = XMLDoc || this.XMLDoc,
+            question = this.question,
+            dynamicTagName = 'column',
+            response = question.Data.Response,
+            row,            
+            responseDate,
+            FORM_ID = 'calendar',
+            DAY_SELECT_ID = 'day',
+            MONTH_SELECT_ID = 'month',
+            YEAR_SELECT_ID = 'year',
+            returnsAnswerAttribute = 'required',
+            // #region calendar HTML elements.
+            form = document.createElement('form'),
+            daySelect = document.createElement('select'),
+            monthSelect = document.createElement('select'),
+            yearSelect = document.createElement('select'),
+            dayLabel = document.createElement('label'),
+            monthLabel = document.createElement('label'),
+            yearLabel = document.createElement('label'),
+            calendar = new objects.Calendar(daySelect, monthSelect, yearSelect);
+            // #endregion
 
         // #region setting form elemenets attributes.
-        form.setAttribute('id', FORM_ID);
-        daySelect.setAttribute('id', DAY_SELECT_ID);
-        monthSelect.setAttribute('id', MONTH_SELECT_ID);
-        yearSelect.setAttribute('id', YEAR_SELECT_ID);
+        form.setAttribute('id', FORM_ID + ' ' + question.ID);
+        calendar.daySelect.setAttribute('id', DAY_SELECT_ID + '-' + question.ID);
+        calendar.monthSelect.setAttribute('id', MONTH_SELECT_ID + '-' + question.ID);
+        calendar.yearSelect.setAttribute('id', YEAR_SELECT_ID + '-' + question.ID);
         // #endregion
 
         // #region populate form
         // #region append option elements to selects
-        appendOptionElements(daySelect, 1, 31);
-        appendOptionElements(monthSelect, 1, 12);
-        appendOptionElements(yearSelect, 1940, 2030);
+        appendOptionElements(calendar.daySelect, 1, 31);
+        appendOptionElements(calendar.monthSelect, 1, 12);
+        appendOptionElements(calendar.yearSelect, 1940, 2030);
         // #endregion
 
         // #region Add label info.
@@ -321,9 +367,9 @@
         // #endregion
 
         // #region append select to label
-        dayLabel.appendChild(daySelect);
-        monthLabel.appendChild(monthSelect);
-        yearLabel.appendChild(yearSelect);
+        dayLabel.appendChild(calendar.daySelect);
+        monthLabel.appendChild(calendar.monthSelect);
+        yearLabel.appendChild(calendar.yearSelect);
         // #endregion
 
         // #region append labels to form
@@ -335,14 +381,14 @@
         // #endregion
 
         // #region set 'calendar' properties
-        calendar.day = daySelect.value;
-        calendar.month = monthSelect.value;
-        calendar.year = yearSelect.value;
+        calendar.day = calendar.daySelect.value;
+        calendar.month = calendar.monthSelect.value;
+        calendar.year = calendar.yearSelect.value;
         // #endregion
 
         // #region onchange events
         // 'e' can be event object or number representing a day.
-        daySelect.onchange = function (e) {
+        calendar.daySelect.onchange = function (e) {
             var selectedDay = Number(e && e.target && e.target.value || e);
             calendar.day = selectedDay;
             // update 'selectedIndex' property.
@@ -352,7 +398,7 @@
         }
 
         // 'e' can be event object or number representing an year.
-        monthSelect.onchange = function (e, year) {
+        calendar.monthSelect.onchange = function (e, year) {
             var selectedMonth;
             var currentMonth;
             var currentDay;
@@ -362,15 +408,15 @@
 
             if (e.target !== undefined) {
                 selectedMonth = Number(e.target.value);
-                currentMonth = calendar.month;
-                currentDay = Number(daySelect.value);
-                currentYear = Number(yearSelect.value);
+                currentMonth = Number(calendar.month);
+                currentDay = Number(calendar.daySelect.value);
+                currentYear = Number(calendar.yearSelect.value);
                 daysInSelectedMonth = calendar.getDaysInMonth(selectedMonth);
                 daysInCurrentMonth = calendar.getDaysInMonth(currentMonth);
 
                 calendar.month = selectedMonth;
             } else {
-                monthSelect.selectedIndex = e;
+                calendar.monthSelect.selectedIndex = e;
                 year = year || calendar.year;
                 daysInSelectedMonth = calendar.getDaysInMonth(e + 1, year);
                 daysInCurrentMonth = 31;
@@ -386,10 +432,10 @@
             // Hides or shows days options based on selected month.
             function resolveDaysOptionsCount() {
                 if (daysInSelectedMonth < daysInCurrentMonth) {
-                    hide(daysInSelectedMonth, daysInCurrentMonth);
+                    hideSelectOption(daysInSelectedMonth, daysInCurrentMonth);
 
                 } else if (daysInSelectedMonth > daysInCurrentMonth) {
-                    show(daysInCurrentMonth, daysInSelectedMonth);
+                    showSelectOption(daysInCurrentMonth, daysInSelectedMonth);
                 }
             }
 
@@ -403,7 +449,7 @@
         };
 
         // 'e' can be event object or number representing a month.
-        yearSelect.onchange = function (e) {
+        calendar.yearSelect.onchange = function (e) {
             var selectedYear, currentYear, currentMonth, currentDay,
             february, leapYearFebDays, februaryDays;
 
@@ -419,11 +465,11 @@
                 // change from leap to non-leap. hide the 29th day.
                 if (calendar.isLeap(currentYear) && calendar.isLeap(selectedYear) === false &&
                     currentMonth === february) {
-                    daySelect.onchange(februaryDays);
-                    hide(februaryDays, leapYearFebDays);
+                    calendar.daySelect.onchange(februaryDays);
+                    hideSelectOption(februaryDays, leapYearFebDays);
                 } else if (calendar.isLeap(currentYear) === false && calendar.isLeap(selectedYear)
                     && currentMonth === february) { // change from non-leap to leap. show the 29th day.
-                    show(februaryDays, leapYearFebDays);
+                    showSelectOption(februaryDays, leapYearFebDays);
                 }
 
                 calendar.year = selectedYear;
@@ -432,14 +478,16 @@
                 calendar.year = e;
             }
 
-            yearSelect.selectedIndex = selectedYear - Number(yearSelect.firstChild.value);
+            calendar.yearSelect.selectedIndex =
+                selectedYear - Number(calendar.yearSelect.firstChild.value);
 
             updateAnswer();
         };
         // #endregion
 
-        row = functions.createRow(form, undefined, '', returnsAnswerAttribute);
+        row = functions.createRow(form, undefined, '', returnsAnswerAttribute, constants.ROW_CLASS + ' ' + constants.DATE_ROW_CLASS);
         row.firstChild.
+
             setAttribute('colspan', objects.QuestionerDataStorage.dataColumnCount);
         functions.insertDynamicContents(doc, row, dynamicTagName);
 
@@ -458,10 +506,10 @@
             month = responseDate.getMonth();
             year = responseDate.getFullYear();
 
-            daySelect.selectedIndex = day - 1;
-            daySelect.onchange(day);
-            monthSelect.onchange(month, year);
-            yearSelect.onchange(year);
+            calendar.daySelect.selectedIndex = day - 1;
+            calendar.daySelect.onchange(day);
+            calendar.monthSelect.onchange(month, year);
+            calendar.yearSelect.onchange(year);
 
             updateAnswer();
         }
@@ -475,7 +523,7 @@
         }
 
         function updateDateSelect(selectedIndex) {
-            daySelect.selectedIndex = selectedIndex;
+            calendar.daySelect.selectedIndex = selectedIndex;
         }
 
         function appendOptionElements(selectContainer, start, end) {
@@ -491,19 +539,19 @@
             }
         };
 
-        function hide(startDayIndex, endDayIndex) {
+        function hideSelectOption(startDayIndex, endDayIndex) {
             for (var i = startDayIndex; i < endDayIndex; i++) {
-                daySelect.removeChild(daySelect.lastChild);
+                calendar.daySelect.removeChild(calendar.daySelect.lastChild);
             }
         };
 
-        function show(daysInCurrentMonth, daysInSelectedMonth) {
+        function showSelectOption(daysInCurrentMonth, daysInSelectedMonth) {
             var daysCount = daysInSelectedMonth - daysInCurrentMonth, i, option;
 
             for (i = 1; i <= daysCount; i++) {
                 option = document.createElement('option');
                 option.innerHTML = daysInCurrentMonth + i;
-                daySelect.appendChild(option);
+                calendar.daySelect.appendChild(option);
             }
         }
 
