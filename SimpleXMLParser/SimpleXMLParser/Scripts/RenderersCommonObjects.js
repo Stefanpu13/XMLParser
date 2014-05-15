@@ -2,12 +2,17 @@
 var renderersCommon = renderersCommon || {}; // namespace declaration in different classes
 renderersCommon.objects = (function () {
 
-    var Calendar = (function () {
+    var constants = renderersCommon.constants;
 
-        var Calendar = function () {
+        Calendar = (function () {
+
+        var Calendar = function (daySelect, monthSelect, yearSelect) {
             this.day,
             this.month,
             this.year;
+            this.daySelect = daySelect;
+            this.monthSelect = monthSelect;
+            this.yearSelect = yearSelect;
         };
 
         Calendar.prototype.isLeap = function (year) {
@@ -91,40 +96,14 @@ renderersCommon.objects = (function () {
 
             return DropdownHttpClient;
         })(),
-
-        XMLScaleRendererManager = (function () {
-            var rendererManager, renderersGroup;
-            function isScaleRenderer(displayType) {
-                return displayType === 'scale';
-            }
-
-            function showScaleRowIfNotVisible(e) {
-                // TODO: Implement method
-            }
-
-            function currentRendererIsScale() {
-                return rendererManager.isScaleRenderer(rendererManager.currentRendererType);
-            }
-
-            rendererManager = {
-                isScaleRenderer: isScaleRenderer,
-                currentRenderer: undefined,
-                currentRendererType: undefined,
-                showScaleRowIfNotVisible: showScaleRowIfNotVisible,
-                currentRendererIsScale: currentRendererIsScale
-            }
-
-            return rendererManager;
-        })(),
-        
+                
         XMLRenderer = (function () {
-        var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc, rowClassName) {
-            this.question = questionObject;
-            this.XMLDoc = XMLDoc;
-            this.convertToHTML = XMLRenderingFunc;
-            this.rowClassName = rowClassName;
-            this.eventListenersList = {};
-        } 
+            var XMLRenderer = function (questionObject, XMLDoc, XMLRenderingFunc, dynamicScaleQuestionId) {
+                this.question = questionObject;
+                this.XMLDoc = XMLDoc;
+                this.convertToHTML = XMLRenderingFunc;
+                this.dynamicScaleQuestionId = dynamicScaleQuestionId;
+            }
 
         // function is set to prototype and not copied to each object.
         XMLRenderer.prototype.convertToHTML = function () { };        
@@ -134,23 +113,63 @@ renderersCommon.objects = (function () {
 
          // QuestionerDataStorage is constructor function
         QuestionerDataStorage = (function () {
-        var dataColumnCount;
+        var count;
         return {
             get dataColumnCount() {
-                return dataColumnCount || 4; // As is in original method.
+                return count || 4; // As is in original method.
             },
             set dataColumnCount(value) {
-                dataColumnCount = value;
+                count = value;
             }
         }
-    })();
+        })(),
+        
+        dynamicScaleManager = (function () {
+            var currentScaleQuestionId,
+                scaleModeOn = false,
+                CurrentScaleQuestionId;
+
+            function isScaleRednerer(displayType) {
+                return displayType === constants.DISPLAY_TYPE_SCALE;
+            }
+
+            function isRadioRenderer(displayType){
+                return displayType === constants.DISPLAY_TYPE_RADIO;
+            }
+
+            function turnScaleModeOn() {
+                scaleModeOn = true;
+            }
+
+            function turnScaleModeOff() {
+                scaleModeOn = false;
+            }
+
+            function isScaleModeOn() {
+                return scaleModeOn;
+            }
+
+            return {
+                isScaleRednerer: isScaleRednerer,
+                turnScaleModeOn: turnScaleModeOn,
+                turnScaleModeOff: turnScaleModeOff,
+                isScaleModeOn: isScaleModeOn,
+                isRadioRenderer:isRadioRenderer,
+                get CurrentScaleQuestionId() {
+                    return CurrentScaleQuestionId;
+                },
+                set CurrentScaleQuestionId(value) {
+                    CurrentScaleQuestionId = value;
+                }
+            }
+        })();
 
     return {
         Response: Response,
         Calendar: Calendar,
-        DropdownHttpClient: DropdownHttpClient,
-        XMLScaleRendererManager: XMLScaleRendererManager,
+        DropdownHttpClient: DropdownHttpClient,        
         XMLRenderer: XMLRenderer,
-        QuestionerDataStorage: QuestionerDataStorage
+        QuestionerDataStorage: QuestionerDataStorage,
+        dynamicScaleManager: dynamicScaleManager
     }
 })()
