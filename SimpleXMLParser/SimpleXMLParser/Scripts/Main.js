@@ -1,5 +1,4 @@
-﻿/// <reference path="jquery-2.1.0.min.js" />
-/// <reference path="renderers.js" />
+﻿/// <reference path="renderers.js" />
 /// <reference path="rendererFactory.js" />
 
 $(document).ready(function () {
@@ -8,9 +7,9 @@ $(document).ready(function () {
     var END_OF_XML = '/// End Of XML ///';
     
     document.onkeydown = function (event) {
-        //if (event.keyCode === 13) {
-        //    convertXMLToHTML();
-        //}
+        if (event.keyCode === 13) {
+            convertXMLToHTML();
+        }
     }
     button.onclick = convertXMLToHTML;
 
@@ -86,3 +85,18 @@ $(document).ready(function () {
         }
     }
 })
+
+//function out() { }
+//out.prototype = {
+//    asd: function (a, b, c) {
+//    },
+
+//    bva: function () {
+//        this.asd(1, 2, 3);
+
+//        this.asd.call(this, 1, 2, 3);
+//    }
+//}
+
+
+
