@@ -4,6 +4,24 @@
     border: 1px solid black;
 }
 
+#table-container {
+    /*border-spacing:0px 2px;*/
+}
+
+.form-question-row:nth-child(odd) {
+    background-color:#f2f2f2;
+    color:#b4b4b4;
+}
+tr.vertical-group-row {
+    color:black !important;
+    background-color:#fff !important;
+}
+
+.scale-row, .label-row {
+    color:#f2f2f2 !important;
+    background-color: #995C5C !important;
+}
+
 .scale-container{
     empty-cells:show;
     display:table;   
@@ -13,14 +31,14 @@
     width: auto;    
     padding: 5px;
     margin: 5px;
-   
 }
 .scale-cell { 
     display:table-cell; 
-    background-color:#f19033; 
+    /*background-color:#f19033;*/ 
+    text-align:center;
 }
 .radio-cell {
-    background-color:white; 
+    /*background-color:white;*/ 
     text-align:center;   
 }
 
@@ -37,17 +55,22 @@
 }
 .vertical-radio-label, .inner-table-label {
     display:block;
-    background-color: green;   
+    background-color:#f2f2f2;
+    color:#b4b4b4;   
+    text-align:left;
 }
 .label-cell, .horizontal-radio-label {
-    background-color:lightgreen;
+    /*background-color:lightgreen;*/
 }
 .inner-table {
     width: 100%;
     text-align:left;
+    color:black !important;
+    background:#fff !important;
 }
 .inner-table-radio-cell, .inner-table-scale-cell {
     border:none;
+    text-align:center;
 }
 .no-wrap {
     white-space:nowrap;
