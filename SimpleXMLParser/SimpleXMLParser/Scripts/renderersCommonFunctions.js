@@ -1,15 +1,16 @@
-﻿var renderersCommon = renderersCommon || {}; // namespace declaration in different classes
+﻿/// <reference path="renderersConstants.js" />
+var renderersCommon = renderersCommon || {}; // namespace declaration in different classes
 renderersCommon.functions = (function () {
     var objects = renderersCommon.objects,
         constants = renderersCommon.constants;
 
-    function createRow(columns, cellContent, cellClass, returnsAnswerAttribute) {
+    function createRow(columns, cellContent, cellClass, returnsAnswerAttribute, rowClass) {
         var row, columnsCount = columns.length, i, classAttribute;
 
         cellClass = (cellClass || '') + ' cell';
         row = document.createElement('tr');
 
-        if (columns.nodeName) {
+        if (columns.nodeName) { // If is a node element append it directly.
             appendCell(row, cellContent, columns, cellClass);
         } else {
             for (i = 0; i < columnsCount; i++) {
@@ -20,6 +21,9 @@ renderersCommon.functions = (function () {
         if (returnsAnswerAttribute) { // not null, undefined, false
             row.setAttribute(constants.RETURN_ANSWER, returnsAnswerAttribute);
         }
+
+        row.className = (rowClass || '');
+
         return row;
     }
 
@@ -30,8 +34,13 @@ renderersCommon.functions = (function () {
     }
 
     function createCell(column, cellContent) {
-        var possibleColumnNames = ['column', 'control_value'], cell = document.createElement('td'),
-            element, displayAttrValue, columnValueAttr, dynamicAttribute;
+        var possibleColumnNames = ['column', 'control_value'],
+            cell = document.createElement('td'),
+            element,
+            displayAttrValue,
+            displayAttrValueContainer,
+            columnValueAttr,
+            dynamicAttribute;
 
         if (column.getAttribute !== undefined) {
             columnValueAttr = column.getAttribute('value');
@@ -46,17 +55,24 @@ renderersCommon.functions = (function () {
             if (possibleColumnNames.indexOf(column.localName) < 0) {
                 cell.appendChild(column);
             } else {
-                if (cellContent !== undefined) {
+                if (cellContent !== undefined) { // cellContnet is used with radio renderers
+                    if (cellContent.rowType && cellContent.rowType === constants.VERTICAL_GROUP_CELL_CONTENT_TYPE) {
+                        cellContent =
+                            changeLabelAndInputCellContent(cellContent, columnValueAttr);
+                    }
+                  
                     parseCellContent(cell, cellContent);
                 }
             }
 
             if (dynamicAttribute !== null) {
                 cell.innerHTML = dynamicAttribute;
-            } else { // Insert display text at beginning of innerHTML         
+            } else {
                 displayAttrValue = column.getAttribute('display');
                 if (displayAttrValue !== null) {
-                    cell.innerHTML = cell.innerHTML + displayAttrValue;
+                    // 'display' attribute value can be set on the cell or in 'label'
+                    displayAttrValueContainer = cell.getElementsByTagName('label')[0] || cell;
+                    placeDisplayAttributeInLabel(displayAttrValueContainer, displayAttrValue);                                     
                 }
             }
         } else { // simple text.
@@ -65,6 +81,30 @@ renderersCommon.functions = (function () {
         }
 
         return cell;
+    }
+
+    function placeDisplayAttributeInLabel(container, value) {
+        if (value.indexOf("No:") > -1 || value.indexOf("Yes:") > -1) {
+            container.innerHTML =
+                value + container.innerHTML;
+        } else {
+            container.innerHTML =
+                container.innerHTML + value;
+        }
+    }
+
+    function changeLabelAndInputCellContent(cellContent, columnValueAttr) {
+        var radioContent = cellContent.elements[0],
+            labelContent = cellContent.elements[1];
+            radioId = 'radio-' + cellContent.questionId + '-' + columnValueAttr;
+
+        labelContent.attributes.push({ name: 'for', value: radioId });
+        radioContent.attributes.push({ name: 'id', value: radioId });
+
+        cellContent.elements[0] = radioContent;
+        cellContent.elements[1] = labelContent;
+
+        return cellContent;
     }
 
     // Creates the elements based on 'cellContent' object and inserts them in cell
@@ -77,7 +117,6 @@ renderersCommon.functions = (function () {
                 elem.innerElements.forEach(function (innerElem) {
                     var innerElement = createElement(innerElem);
                     domElement.appendChild(innerElement);
-                    //parseCellContent(elem, innerElem);
                 });
             }
             cell.appendChild(domElement);
@@ -189,15 +228,28 @@ renderersCommon.functions = (function () {
         var radioButtons = node.getElementsByTagName('input');
         if (radioButtons.length >= 0) {
             constants.forEach.call(radioButtons, function (radioButton) {
-                radioButton.addEventListener('change', function () {
-                    var td = radioButton.parentNode.parentNode; // 'input' is in 'label', which is in 'td'.
+                radioButton.addEventListener('change', function (e) {
+                    var tdContainer = node.getElementsByTagName['td'],
+                    // 'input' is in 'label', which is in 'td'.
+                    td = getClosestParent(radioButton, 'TD');
                     updateAnswer(td, row, question);
                 });
             });
         }
     }
 
+    function getClosestParent(node, parentType) {
+        var parentNode = node.parentNode;
+
+        while (parentNode && parentNode.nodeName !== parentType) {
+            parentNode = parentNode.parentNode;    
+        }
+        
+        return parentNode;
+    }
+
     function attachRowFunctionality(row, innerTable, question) {
+        // answers are either 'td's or rows in inner table
         answers = (innerTable && innerTable.childNodes) || row.childNodes;
 
         constants.forEach.call(answers, function (node) {
@@ -247,7 +299,7 @@ renderersCommon.functions = (function () {
                 var radioButtons = node.getElementsByTagName('input');
                 if (radioButtons.length >= 0) {
                     constants.forEach.call(radioButtons, function (radioButton) {
-                        var td = radioButton.parentNode.parentNode,
+                        var td = getClosestParent(radioButton, 'TD'),
                             dataAnswerValue = td.getAttribute(constants.ANSWER_ATTRIBUTE);
 
                         if (dataAnswerValue === response.RValue) {
@@ -275,7 +327,7 @@ renderersCommon.functions = (function () {
     }
 
     // #region dropdown renderers helper functions
-    function createSelectElement(dropDown, questionId, yearSelectClass, monthSelectClass, selectClassName) {
+    function createSelectElement(dropDown, questionId, yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass, selectClassName) {
         var optionElement,
             i = 0,
             labelContainer = document.createElement('label'),
@@ -285,10 +337,12 @@ renderersCommon.functions = (function () {
             dropDownLabelAttribute = dropDown.getAttribute('label');
 
         selectElement.setAttribute('data-questionId', questionId);
-        selectElement.className = selectClassName || '';
+        // The last argument can be either 'yearOnlySelectClass' or 'selectClassName'.
+        selectElement.className = selectClassName || yearOnlySelectClass || '';
 
         if (isMonthsYearsDropDownType(dropDownLabelAttribute)) {
-            populateSelectElementRange(dropDown, selectElement, dropDownLabelAttribute, yearSelectClass, monthSelectClass);
+            populateSelectElementRange(dropDown, selectElement, dropDownLabelAttribute,
+                yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass);
             labelContainer.innerHTML = dropDownLabelAttribute;
         } else {
             for (; i < controlCount; i += 1) {
@@ -305,18 +359,19 @@ renderersCommon.functions = (function () {
         };
     }
 
-    function populateSelectElementRange(controlValuesTag, selectElement, dropDownLabelAttribute, yearSelectClass, monthSelectClass) {
+    function populateSelectElementRange(controlValuesTag, selectElement, dropDownLabelAttribute,
+        yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass) {
         var controlValueRange =
             controlValuesTag.getElementsByTagName('control_value_range')[0],
             min = Number(controlValueRange.getAttribute('min')),
             max = controlValueRange.getAttribute('max'),
             step = Number(controlValueRange.getAttribute('step') || 1),
             optionElement,
-            selectElementClass = dropDownLabelAttribute.indexOf('Year') >= 0 ?
-            yearSelectClass : monthSelectClass;
+            // If 'Month' is not found then it is an year select(it main contain 'Year' or ''!)
+            selectElementClass = setSelectElementClass();
 
         max =
-            max === 'CURRENT_YEAR' ? new Date().getFullYear : Number(max);
+            max === 'CURRENT_YEAR' ? new Date().getFullYear() : Number(max);
 
         if (step > 0) {
             for (var i = min; i <= max; i += step) {
@@ -324,13 +379,28 @@ renderersCommon.functions = (function () {
                 selectElement.appendChild(optionElement);
             }
         } else {
-            for (var i = max; i <= min; i += step) {
+            optionElement = createOptionElement(undefined, 0, 0);
+            selectElement.appendChild(optionElement);
+            for (var i = max; i >= min; i += step) {
                 optionElement = createOptionElement(undefined, i, i);
                 selectElement.appendChild(optionElement);
             }
         }
 
         selectElement.className = selectElementClass;
+
+        function setSelectElementClass() {
+            var selectElementClass;
+            if (dropDownLabelAttribute.indexOf('Month') >= 0) {
+                selectElementClass = monthPartSelectClass;
+            } else if (dropDownLabelAttribute.indexOf('Year') >= 0) {
+                selectElementClass = yearPartSelectClass;
+            } else {
+                selectElementClass = yearOnlySelectClass;
+            }
+
+            return selectElementClass;
+        }
     }
 
     function createOptionElement(columnElement, elemValue, elemInnerHTML) {

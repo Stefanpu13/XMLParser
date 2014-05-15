@@ -18,6 +18,17 @@ renderersCommon.constants = {
     ANSWER_ATTRIBUTE: "data-answer-value",
     COLUMNS_COUNT_ATTTRIBUTE: 'data-columns-count',
     DYNAMIC_SELECT_CLASS_NAME: 'dynamic-select',
+    VERTICAL_GROUP_CELL_CONTENT_TYPE: 'verical group',
+    ROW_CLASS: 'form-question-row',
+    SCALE_ROW_CLASS: 'scale-row',
+    RADIO_ROW_CLASS:'radio-row',
+    TEXT_ROW_CLASS:'text-row',
+    VERTICAL_GROUP_ROW_CLASS:'vertical-group-row',
+    DATE_ROW_CLASS:'date-row',
+    DROPDOWN_ROW_CLASS:'dropdown-row',
+    LABEL_ROW_CLASS: 'label-row',
+    INNER_TABLE_SCALE_ROW: 'inner-table-scale-row',
+    DATA_SCALEID:'data-scaleid',
     // #endregion        
     forEach: Array.prototype.forEach,
     baseUrl: (utils && utils.baseServiceAddress && utils.baseServiceAddress()) || 'http://localhost:61008/api/'

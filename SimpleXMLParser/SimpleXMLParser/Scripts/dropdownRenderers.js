@@ -8,9 +8,9 @@ var dropdownRenderers = (function () {
         functions = renderersCommon.functions,
         objects = renderersCommon.objects,
         constants = renderersCommon.constants,
-        yearSelectClass = 'years-select',
-        monthSelectClass = 'months-select';
-
+        yearPartSelectClass = 'years-part-select',
+        monthPartSelectClass = 'months-part-select',
+        yearOnlySelectClass= 'years-select';
 
     function dropDownRenderer(XMLDoc, skipRestoringAnswer, skipAttachingChangeEventHandlers) {
         // 'this' - refers to the rendering object created in 
@@ -19,8 +19,7 @@ var dropdownRenderers = (function () {
             row,
             returnsAnswerAttribute = 'required',
             responseArray = [],
-            dynamicTagName = 'column', incompleteRowTag,
-            incompleteRowTagValue,
+            dynamicTagName = 'column',
             questionObject = this.question,
             questionId = questionObject.ID,
             selectElements,
@@ -30,26 +29,12 @@ var dropdownRenderers = (function () {
             colSpanAdjust = 2; // As used in original dorpDown renderer
 
         createSelectElementsResult =
-            createSelectElements(doc, yearSelectClass, monthSelectClass);
+            createSelectElements(doc, yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass);
 
         selectElements = createSelectElementsResult.selectContainer;
         dropDownLabelAttribute = createSelectElementsResult.dropDownLabelAttribute;
 
-        incompleteRowTag = doc.getElementsByTagName('incomplete_row')[0];
-        if (incompleteRowTag !== undefined) {
-            incompleteRowTagValue = incompleteRowTag.getAttribute('value');
-
-            if (incompleteRowTagValue !== 'end') {   // 'true' or 'false'                
-                addFirstSelectElement(colSpanAdjust, questionId);
-
-            } else {
-                addLastSelectElement(questionId);
-            }
-        }
-        else {
-            addFirstSelectElement(objects.QuestionerDataStorage.dataColumnCount,
-                questionId);
-        }
+        createSelectElementRow();
 
         if (!skipRestoringAnswer) {
             restoreAllAnswers(selectElements);
@@ -61,25 +46,44 @@ var dropdownRenderers = (function () {
             row, questionId, dropDownLabelAttribute);
         }
 
-        function addFirstSelectElement(colSpan, questionId) {
-            row = functions.createRow(selectElements, undefined,
-                'select-cell', returnsAnswerAttribute);
-            row.firstChild.setAttribute('colspan', colSpan);
-            functions.insertDynamicContents(doc, row, dynamicTagName);
+        function createSelectElementRow() {
+            var incompleteRowTag = doc.getElementsByTagName('incomplete_row')[0], 
+                incompleteRowTagValue;
+            if (incompleteRowTag !== undefined) {
+                incompleteRowTagValue = incompleteRowTag.getAttribute('value');
 
-            if (incompleteRowTagValue === 'start') {
-                currentIncompleteRow = row;
+                if (incompleteRowTagValue !== 'end') {   // 'true' or 'false'                
+                    addFirstSelectElement(colSpanAdjust, questionId);
+
+                } else {
+                    addLastSelectElement(questionId);
+                }
+            }
+            else {
+                addFirstSelectElement(objects.QuestionerDataStorage.dataColumnCount,
+                    questionId);
+            }
+
+            function addFirstSelectElement(colSpan, questionId) {
+                row = functions.createRow(selectElements, undefined,
+                    'select-cell', returnsAnswerAttribute, constants.ROW_CLASS + ' ' + constants.DROPDOWN_ROW_CLASS);
+                row.firstChild.setAttribute('colspan', colSpan);
+                functions.insertDynamicContents(doc, row, dynamicTagName);
+
+                if (incompleteRowTagValue === 'start') {
+                    currentIncompleteRow = row;
+                }
+            }
+
+            function addLastSelectElement() {
+                functions.appendCell(currentIncompleteRow, undefined, selectElements[0], 'select-cell cell');
+                // The 'select' element is now last child.
+                currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
+                row = currentIncompleteRow;
             }
         }
 
-        function addLastSelectElement() {
-            functions.appendCell(currentIncompleteRow, undefined, selectElements[0], 'select-cell cell');
-            // The 'select' element is now last child.
-            currentIncompleteRow.lastChild.setAttribute('colspan', colSpanAdjust);
-            row = currentIncompleteRow;
-        }
-
-        function createSelectElements(doc, yearSelectClass, monthSelectClass) {
+        function createSelectElements(doc, yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass) {
             var dropDowns = doc.getElementsByTagName('control_values'),
                 dropDownsCount = dropDowns.length,
                 i = 0,
@@ -90,7 +94,7 @@ var dropdownRenderers = (function () {
 
             for (; i < dropDownsCount; i += 1) {
                 createSelectElementResult = functions.createSelectElement(dropDowns[i], questionId,
-                     yearSelectClass, monthSelectClass);
+                     yearPartSelectClass, monthPartSelectClass, yearOnlySelectClass);
                 labelContainer = createSelectElementResult.labelContainer;
                 dropDownLabelAttribute = createSelectElementResult.dropDownLabelAttribute;
                 selectContainer.push(labelContainer);
@@ -127,7 +131,7 @@ var dropdownRenderers = (function () {
 
             if (rValue !== null && response !== undefined) {
                 if (functions.isMonthsYearsDropDownType(dropDownLabelAttribute)) { // Months years 
-                    restoreMonthAndDate(selectElement, rValue);                    
+                    restoreMonthAndYear(selectElement, rValue);                    
                 } else {
                     if (rValueInt !== null) {
                         constants.forEach.call(selectElement.childNodes, function (optionElement, index) {
@@ -150,15 +154,21 @@ var dropdownRenderers = (function () {
                 }
             }
 
-            function restoreMonthAndDate(selectElement, monthsYearsValue) {
+            function restoreMonthAndYear(selectElement, monthsYearsValue) {
                 var restoredResponse,
                     restoreObject = convertFromMonthsValue(monthsYearsValue);
 
-                if (selectElement.className === yearSelectClass) {
+                if (selectElement.className === yearPartSelectClass) {
                     selectElement.selectedIndex = restoreObject.years;
-                } else if (selectElement.className === monthSelectClass) {
+                } else if (selectElement.className === monthPartSelectClass) {
                     selectElement.selectedIndex = restoreObject.months;
+                } else if (selectElement.className === yearOnlySelectClass) {
+                    // first option is empty(that`s why index is '+ 1'), second is current year, restore value is
+                    // between current year and min year(usually 1950) - see questioner 1080
+                    selectElement.selectedIndex =
+                        selectElement.options.item(1).value - restoreObject.restoreValue + 1;
                 }
+
                 if (restoreObject.restoreValue) {
                     restoredResponse = new objects.Response(questionId, restoreObject.restoreValue, rValueInt);
                 }
@@ -509,11 +519,14 @@ var dropdownRenderers = (function () {
     // Whole part is years count, decimal part is months / 12.
     // Exmaple: 5.3333333 - years:3, months: 4
     function convertToMonthsValue(row) {
-        var result;
-        month =
-                 Number(row.getElementsByClassName(monthSelectClass)[0].value);
-        year =
-           Number(row.getElementsByClassName(yearSelectClass)[0].value);
+        var result,
+            monthValue =row.getElementsByClassName(monthPartSelectClass)[0],
+            yearValue = row.getElementsByClassName(yearPartSelectClass)[0] ||
+            row.getElementsByClassName(yearOnlySelectClass)[0],
+            month = Number(monthValue && monthValue.value) || 0,
+            year = Number(yearValue && yearValue.value) || 0;
+       
+       
         result = year + month / 12;
         return result;
     }

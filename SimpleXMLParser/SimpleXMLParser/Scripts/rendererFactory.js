@@ -7,7 +7,10 @@ var XMLRendererFactory = (function () {
     var renderers = {}, // Assosiative array of rendering functions.
         ROOT_TAG = 'eval_question',        
         EXTERNAL_REF = 'ExternalRef',
-        Q_TEXT = 'QText', currentSelectedRenderer;
+        Q_TEXT = 'QText',
+        objects = renderersCommon.objects,
+        currentSelectedRenderer,
+        scaleManager = objects.dynamicScaleManager;
     
     function addXMLRenderer(XMLType, renderFunc) {
         /// <summary>Adds XML renderer based on the XML type </summary>
@@ -22,9 +25,9 @@ var XMLRendererFactory = (function () {
         /// <returns type="XMLRenderer"> An XML renderer.</returns>
         var questionObject,
             xmlRenderer,
-           scaleRowClassName,
-            objects = renderersCommon.objects,
-            typeOfQuestionString = typeof questionString;
+            scaleRowClassName,            
+            typeOfQuestionString = typeof questionString,
+            dynamicScaleQuestionId;
 
         try {
             if (typeOfQuestionString === 'string') {
@@ -45,21 +48,27 @@ var XMLRendererFactory = (function () {
         renderFunc = renderers[displayType];
         // Make a copy of the renderer!!!
 
-        if (objects.XMLScaleRendererManager.isScaleRenderer(displayType)) {
-            scaleRowClassName = 'question-' + questionObject.ID;
-            xmlRenderer =
-                new objects.XMLRenderer(questionObject, XMLDoc, renderFunc, scaleRowClassName);
+        manageScaleMode();
+    
 
-            if (objects.XMLScaleRendererManager.currentRendererIsScale()) {
-                objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
-            }
+        xmlRenderer = new objects.XMLRenderer(questionObject, XMLDoc, renderFunc, dynamicScaleQuestionId);
 
-        } else {
-            xmlRenderer = new objects.XMLRenderer(questionObject, XMLDoc, renderFunc);
-        }
-        objects.XMLScaleRendererManager.currentRenderer = xmlRenderer;
-        objects.XMLScaleRendererManager.currentRendererType = displayType;
         return xmlRenderer;
+
+        function manageScaleMode() {
+            if (scaleManager.isScaleRednerer(displayType)) {
+                if (scaleManager.isScaleModeOn() === false) {
+                    scaleManager.turnScaleModeOn();
+                    scaleManager.CurrentScaleQuestionId = questionObject.ID;
+                }
+
+            } else {
+                if (scaleManager.isRadioRenderer(displayType)) {
+                    scaleManager.turnScaleModeOff();
+                    dynamicScaleQuestionId = scaleManager.CurrentScaleQuestionId;
+                } 
+            }
+        }        
     }
     
     function parseXML(question) {
